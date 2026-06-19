@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DMPL</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="score-band">
+        <div>
+          <p class="eyebrow">DMPL</p>
+          <h1>2v2 Hand Cricket</h1>
+          <p class="lede">Four overs. Two wickets. Guess, bluff, and chase the target.</p>
+        </div>
+        <div class="room-chip">
+          <span aria-hidden="true">#</span>
+          <strong id="roomLabel">No room</strong>
+        </div>
+      </section>
+
+      <section class="join-panel" id="joinForm">
+        <label>
+          Player name
+          <input id="playerName" maxlength="24" placeholder="Selva" required />
+        </label>
+        <div class="create-actions">
+          <button type="button" data-create-room="public">Create public room</button>
+          <button class="secondary-create" type="button" data-create-room="private">Create private room</button>
+        </div>
+        <form class="join-code-form" id="joinCodeForm">
+          <label>
+            Room code
+            <input id="roomCode" maxlength="6" placeholder="A1B2C3" required />
+          </label>
+          <button type="submit">Join by code</button>
+        </form>
+        <div class="public-rooms">
+          <div class="panel-heading">
+            <h2>Public rooms</h2>
+            <button class="text-button" id="refreshRoomsButton" type="button">Refresh</button>
+          </div>
+          <div id="publicRoomsList" class="room-list"></div>
+        </div>
+        <p class="notice-text" id="notice"></p>
+        <p class="error-text" id="joinError"></p>
+      </section>
+
+      <div class="match-grid hidden" id="matchView">
+        <section class="scoreboard">
+          <div class="teams">
+            <article class="team-card" id="teamA">
+              <span>Team A</span>
+              <strong id="scoreA">0/0</strong>
+              <small id="oversA">0.0 overs</small>
+            </article>
+            <article class="team-card" id="teamB">
+              <span>Team B</span>
+              <strong id="scoreB">0/0</strong>
+              <small id="oversB">0.0 overs</small>
+            </article>
+          </div>
+
+          <div class="status-strip" id="matchStatus">Join a room to start.</div>
+          <div class="share-strip" id="shareStrip">
+            <span id="shareLink"></span>
+            <button class="text-button" id="copyLinkButton" type="button">Copy link</button>
+          </div>
+
+          <div class="players">
+            <div>
+              <h2>Team A</h2>
+              <div id="teamAPlayers"></div>
+            </div>
+            <div>
+              <h2>Team B</h2>
+              <div id="teamBPlayers"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="play-panel">
+          <div class="role-block">
+            <p class="eyebrow">Your role</p>
+            <h2 id="roleTitle">Waiting</h2>
+            <p id="roleHelp">Need four players to begin.</p>
+          </div>
+
+          <div class="run-pad" id="runPad" aria-label="Run choices"></div>
+
+          <div class="last-ball hidden" id="lastBall">
+            <span>Last ball</span>
+            <strong id="lastBallText"></strong>
+          </div>
+
+          <button class="secondary-action hidden" id="restartButton" type="button">Restart</button>
+          <p class="error-text" id="playError"></p>
+        </section>
+
+        <section class="log-panel">
+          <h2>Match log</h2>
+          <ol id="matchLog"></ol>
+        </section>
+      </div>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
