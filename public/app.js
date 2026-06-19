@@ -251,10 +251,12 @@ function renderLog(room) {
 function getRole(playerId) {
   const room = state.room;
   if (!room || room.status !== "playing") return "waiting";
-  const player = room.players.find((candidate) => candidate.id === playerId);
-  if (player && room.score[player.team].outPlayerIds.includes(playerId)) return "out";
   if (room.activeBatterId === playerId) return "batter";
   if (room.activeBowlerId === playerId) return "bowler";
+  const player = room.players.find((candidate) => candidate.id === playerId);
+  if (player && player.team === room.battingTeam && room.score[player.team].outPlayerIds.includes(playerId)) {
+    return "out";
+  }
   return "fielder";
 }
 
