@@ -53,6 +53,20 @@ http://127.0.0.1:3000
 
 Create a public or private room, then join the room from other tabs by code or invite link.
 
+## Deploy
+
+This repo includes `render.yaml` for a Render Web Service deployment.
+
+Recommended MVP deploy flow:
+
+1. Push this repo to GitHub.
+2. Open Render and create a new Blueprint or Web Service from the repo.
+3. Use `npm install` as the build command.
+4. Use `npm start` as the start command.
+5. After deploy, share the generated `onrender.com` URL.
+
+Important MVP limitation: rooms are currently stored in server memory. That is fine for learning and a first live demo, but rooms reset when the server restarts. For serious public traffic, add a database or Redis-style store next.
+
 ## Learning Path
 
 Recommended order:
