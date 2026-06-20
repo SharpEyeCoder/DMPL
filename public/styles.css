@@ -390,6 +390,7 @@ button:disabled {
   flex-direction: column;
   gap: 20px;
   height: calc(100vh - 80px); /* Fill space minus padding */
+  overflow-y: auto;
 }
 
 .match-top {
