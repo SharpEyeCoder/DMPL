@@ -293,6 +293,7 @@ function openEvents() {
 
 /* --- RENDERERS --- */
 function renderLobby() {
+  el.tossOverlay.classList.add("hidden");
   const { players } = state.room;
   
   const teamA = players.filter(p => p.team === "A");
@@ -356,13 +357,15 @@ function renderToss() {
       el.tossCoinAnim.classList.add("flipping");
       if (toss.result === "tails") el.tossCoinAnim.classList.add("to-tails");
       
+      state.isFlipping = true;
       setTimeout(() => {
+        state.isFlipping = false;
         el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${toss.winnerId === state.playerId ? 'YOU' : 'THEY'} WON THE TOSS.`;
         if (isWinningCaptain) {
           el.tossChoiceActions.classList.remove("hidden");
         }
       }, 3000); // 3 seconds animation
-    } else {
+    } else if (!state.isFlipping) {
       el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${toss.winnerId === state.playerId ? 'YOU' : 'THEY'} WON THE TOSS.`;
       if (isWinningCaptain) {
         el.tossChoiceActions.classList.remove("hidden");
