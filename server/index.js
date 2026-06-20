@@ -658,7 +658,8 @@ async function serveStatic(pathname, response) {
     if (!fileStats.isFile()) throw new Error("Not a file");
 
     response.writeHead(200, {
-      "Content-Type": getContentType(filePath)
+      "Content-Type": getContentType(filePath),
+      "Cache-Control": getCacheControl(filePath)
     });
     createReadStream(filePath).pipe(response);
   } catch {
@@ -693,4 +694,13 @@ function getContentType(filePath) {
   };
 
   return types[extname(filePath)] || "application/octet-stream";
+}
+
+function getCacheControl(filePath) {
+  const extension = extname(filePath);
+  if (extension === ".html" || extension === ".js" || extension === ".css") {
+    return "no-store";
+  }
+
+  return "public, max-age=3600";
 }
