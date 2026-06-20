@@ -4,7 +4,8 @@ const state = {
   playerId: "",
   roomCode: "",
   room: null,
-  events: null
+  events: null,
+  lastTossFlip: null
 };
 
 const elements = {
@@ -28,6 +29,12 @@ const elements = {
   roleTitle: document.querySelector("#roleTitle"),
   roleHelp: document.querySelector("#roleHelp"),
   runPad: document.querySelector("#runPad"),
+  tossPanel: document.querySelector("#tossPanel"),
+  coin: document.querySelector("#coin"),
+  coinFace: document.querySelector("#coinFace"),
+  tossTitle: document.querySelector("#tossTitle"),
+  tossHelp: document.querySelector("#tossHelp"),
+  flipTossButton: document.querySelector("#flipTossButton"),
   lastBall: document.querySelector("#lastBall"),
   lastBallText: document.querySelector("#lastBallText"),
   restartButton: document.querySelector("#restartButton"),
@@ -71,6 +78,23 @@ elements.copyLinkButton.addEventListener("click", async () => {
   const link = createAbsoluteJoinUrl(state.room.joinUrl);
   await navigator.clipboard?.writeText(link);
   elements.playError.textContent = "Room link copied.";
+});
+
+elements.flipTossButton.addEventListener("click", async () => {
+  if (!state.room) return;
+
+  elements.playError.textContent = "";
+  elements.coin.classList.remove("coin-flip");
+  window.requestAnimationFrame(() => elements.coin.classList.add("coin-flip"));
+
+  const response = await postJson("/api/toss", {
+    roomCode: state.roomCode,
+    hostPlayerId: state.playerId
+  });
+
+  if (!response.ok) {
+    elements.playError.textContent = response.error || "Toss failed.";
+  }
 });
 
 async function createRoom(visibility) {
@@ -187,6 +211,7 @@ function render() {
   elements.matchStatus.textContent = getMatchStatus(room);
   renderPlayers("A", elements.teamAPlayers);
   renderPlayers("B", elements.teamBPlayers);
+  renderToss(room);
   renderPlayPanel(room);
   renderLog(room);
   renderShareLink(room);
@@ -244,12 +269,42 @@ function renderPlayPanel(room) {
   elements.restartButton.classList.toggle("hidden", room.status !== "finished");
 }
 
+function renderToss(room) {
+  const showToss = room.status === "toss" || room.toss?.status === "done";
+  const isHost = room.hostId === state.playerId;
+  elements.tossPanel.classList.toggle("hidden", !showToss);
+  elements.flipTossButton.classList.toggle("hidden", !(room.status === "toss" && isHost));
+  elements.runPad.classList.toggle("hidden", room.status === "toss");
+
+  if (!showToss) return;
+
+  if (room.toss?.status === "done") {
+    elements.coinFace.textContent = room.toss.result === "Heads" ? "H" : "T";
+    elements.tossTitle.textContent = `${room.toss.result}: Team ${room.toss.winnerTeam} won`;
+    elements.tossHelp.textContent = `Team ${room.battingFirstTeam} bats first.`;
+
+    if (room.toss.flippedAt && room.toss.flippedAt !== state.lastTossFlip) {
+      state.lastTossFlip = room.toss.flippedAt;
+      elements.coin.classList.remove("coin-flip");
+      window.requestAnimationFrame(() => elements.coin.classList.add("coin-flip"));
+    }
+    return;
+  }
+
+  elements.coinFace.textContent = "?";
+  elements.tossTitle.textContent = isHost ? "Flip for batting" : "Waiting for host";
+  elements.tossHelp.textContent = isHost
+    ? "Heads gives Team A first batting. Tails gives Team B first batting."
+    : "The host will flip the coin to decide who bats first.";
+}
+
 function renderLog(room) {
   elements.matchLog.innerHTML = room.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("");
 }
 
 function getRole(playerId) {
   const room = state.room;
+  if (room?.status === "toss") return "toss";
   if (!room || room.status !== "playing") return "waiting";
   if (room.activeBatterId === playerId) return "batter";
   if (room.activeBowlerId === playerId) return "bowler";
@@ -273,6 +328,7 @@ function roleLabel(role) {
     bowler: "Active bowler",
     fielder: "Teammate",
     out: "Out",
+    toss: "Toss time",
     waiting: "Waiting"
   };
 
@@ -283,6 +339,9 @@ function getRoleHelp(room, role, hasChosen) {
   if (room.status === "waiting") {
     const remaining = 4 - room.players.length;
     return `Need ${remaining} more player${remaining === 1 ? "" : "s"}.`;
+  }
+  if (room.status === "toss") {
+    return room.hostId === state.playerId ? "Flip the coin to start the match." : "Waiting for the host to flip the coin.";
   }
   if (room.status === "finished") {
     return room.winner === "Tie" ? "The match is tied." : `Team ${room.winner} won the match.`;
@@ -296,9 +355,11 @@ function getRoleHelp(room, role, hasChosen) {
 
 function getMatchStatus(room) {
   if (room.status === "waiting") return `Waiting for 4 players. ${room.players.length}/4 joined.`;
+  if (room.status === "toss") return "All players joined. Toss pending.";
   if (room.status === "finished") return room.winner === "Tie" ? "Match tied." : `Team ${room.winner} wins.`;
 
-  const target = room.innings === 1 ? ` Target: ${room.score.A.runs + 1}.` : "";
+  const firstBattingTeam = room.battingFirstTeam || "A";
+  const target = room.innings === 1 ? ` Target: ${room.score[firstBattingTeam].runs + 1}.` : "";
   return `Team ${room.battingTeam} batting.${target}`;
 }
 
@@ -373,6 +434,7 @@ function leaveRoom(message) {
   state.roomCode = "";
   state.room = null;
   state.events = null;
+  state.lastTossFlip = null;
 
   elements.matchView.classList.add("hidden");
   elements.joinForm.classList.remove("hidden");

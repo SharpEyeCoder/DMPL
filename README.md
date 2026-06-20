@@ -12,7 +12,9 @@ Rules in this first version:
 - The first player in a room becomes the host.
 - The host can kick players from the room.
 - A kicked player is returned to the join screen with a notification.
-- Team A bats first, Team B chases.
+- When four players join, the host flips a coin for the toss.
+- Heads means Team A wins the toss, tails means Team B wins.
+- The toss-winning team bats first.
 - Each innings is 4 overs or 2 wickets.
 - The active batter chooses `1`, `2`, `3`, `4`, or `6`.
 - The active bowler secretly chooses one of the same numbers.
@@ -72,6 +74,6 @@ Important MVP limitation: rooms are currently stored in server memory. That is f
 Recommended order:
 
 1. Learn the frontend flow in `public/app.js`: forms, state, buttons, and conditional rendering.
-2. Learn the backend endpoints in `server/index.js`: `/api/rooms`, `/api/join`, `/api/choice`, `/api/kick`, `/api/restart`, `/api/room`, and `/events`.
+2. Learn the backend endpoints in `server/index.js`: `/api/rooms`, `/api/join`, `/api/toss`, `/api/choice`, `/api/kick`, `/api/restart`, `/api/room`, and `/events`.
 3. Study `resolveBall`, because that is the game engine for one ball.
 4. Add one feature at a time: toss, custom teams, scoreboard history, chat, login, database storage, and public matchmaking.
