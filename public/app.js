@@ -431,27 +431,36 @@ function renderMatch() {
   }
 
   // Active Players
-  const myPlayer = r.players.find(p => p.id === state.playerId);
-  const myTeam = myPlayer ? myPlayer.team : "Spectator";
-  const amIBatting = battingTeam === myTeam;
-  
-  el.playerRoleBadge.textContent = amIBatting ? "BATTER" : "BOWLER";
-  
   const batter = getActiveBatter(r, battingTeam);
   const bowler = getActiveBowler(r, battingTeam === "A" ? "B" : "A");
+
+  let myRole = "SPECTATOR";
+  let canPlay = false;
+  if (batter?.id === state.playerId) { myRole = "BATTER"; canPlay = true; }
+  else if (bowler?.id === state.playerId) { myRole = "BOWLER"; canPlay = true; }
+  else {
+    const myPlayer = r.players.find(p => p.id === state.playerId);
+    if (myPlayer) myRole = myPlayer.team === battingTeam ? "NON-STRIKER" : "FIELDER";
+  }
+
+  el.playerRoleBadge.textContent = myRole;
   
   el.batterName.textContent = batter ? batter.name : "BATTER";
   el.bowlerName.textContent = bowler ? bowler.name : "BOWLER";
+
+  document.querySelectorAll(".key-btn").forEach(btn => {
+    btn.disabled = !canPlay;
+    if (canPlay) {
+      // highlight choice if already made
+      const myPendingChoice = r.pendingChoices[myRole.toLowerCase()];
+      btn.classList.toggle("selected", myPendingChoice === parseInt(btn.dataset.run, 10));
+    } else {
+      btn.classList.remove("selected");
+    }
+  });
   
-  const myPendingChoice = r.pendingChoices[amIBatting ? "batter" : "bowler"];
-  
-  if (myPendingChoice) {
-    if (amIBatting) el.batterChoice.textContent = myPendingChoice;
-    else el.bowlerChoice.textContent = myPendingChoice;
-  } else {
-    el.batterChoice.textContent = "?";
-    el.bowlerChoice.textContent = "?";
-  }
+  if (r.pendingChoices.batter) el.batterChoice.textContent = "✓"; else el.batterChoice.textContent = "?";
+  if (r.pendingChoices.bowler) el.bowlerChoice.textContent = "✓"; else el.bowlerChoice.textContent = "?";
   
   // Render log
   el.matchLog.innerHTML = r.log.slice(0, 5).map(l => {

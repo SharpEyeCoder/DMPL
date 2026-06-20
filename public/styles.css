@@ -396,7 +396,8 @@ button:disabled {
   display: grid;
   grid-template-columns: 300px 1fr;
   gap: 20px;
-  height: 45vh;
+  flex: 1;
+  min-height: 0;
 }
 
 .score-panel {
@@ -539,10 +540,10 @@ button:disabled {
 }
 
 .match-bottom {
-  flex: 1;
+  flex: none; /* Do not expand more than needed */
   background-color: var(--bg-panel);
   border: var(--border-thick);
-  padding: 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
 }
