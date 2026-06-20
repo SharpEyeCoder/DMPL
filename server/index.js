@@ -4,6 +4,12 @@ import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
+import { OAuth2Client } from "google-auth-library";
+import * as cookie from "cookie";
+import * as db from "./db.js";
+
+const GOOGLE_CLIENT_ID = "657579248075-n52mu3kmfe4fpja5ejmu3n9rg7q5o8pr.apps.googleusercontent.com";
+const oauthClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const PORT = process.env.PORT || 3000;
 const VALID_RUNS = new Set([1, 2, 3, 4, 6]);
@@ -23,6 +29,23 @@ const httpServer = createServer(async (request, response) => {
 
   if (request.method === "GET" && url.pathname === "/health") {
     sendJson(response, 200, { ok: true, game: "DMPL" });
+    return;
+  }
+
+  if (request.method === "POST" && url.pathname === "/api/auth/google") {
+    await handleAuthGoogle(request, response);
+    return;
+  }
+  if (request.method === "POST" && url.pathname === "/api/auth/logout") {
+    await handleAuthLogout(request, response);
+    return;
+  }
+  if (request.method === "GET" && url.pathname === "/api/me") {
+    await handleGetMe(request, response);
+    return;
+  }
+  if (request.method === "POST" && url.pathname === "/api/profile") {
+    await handleProfileSetup(request, response);
     return;
   }
 
@@ -90,19 +113,34 @@ httpServer.listen(PORT, () => {
 });
 
 async function handleJoin(request, response) {
+  const user = await getSessionUser(request);
+  if (!user || !user.profile_name) {
+    sendJson(response, 401, { ok: false, error: "Must be logged in to join." });
+    return;
+  }
+  
   const body = await readJsonBody(request);
   const normalizedRoomCode = normalizeRoomCode(body.roomCode);
-  const name = String(body.playerName || "").trim().slice(0, 24);
 
-  if (!normalizedRoomCode || !name) {
-    sendJson(response, 400, { ok: false, error: "Enter a player name and room code." });
+  if (!normalizedRoomCode) {
+    sendJson(response, 400, { ok: false, error: "Enter a room code." });
     return;
   }
 
   const room = rooms.get(normalizedRoomCode);
   if (!room) {
-    sendJson(response, 404, { ok: false, error: "Room not found. Create a room first or check the code." });
+    sendJson(response, 404, { ok: false, error: "Room not found." });
     return;
+  }
+
+  if (room.players.some(p => p.id === user.id)) {
+     sendJson(response, 200, {
+       ok: true,
+       playerId: user.id,
+       roomCode: normalizedRoomCode,
+       room: serializeRoom(room)
+     });
+     return;
   }
 
   if (room.players.length >= 4) {
@@ -110,8 +148,8 @@ async function handleJoin(request, response) {
     return;
   }
 
-  const player = addPlayer(room, name);
-  room.log.unshift(`${name} joined ${normalizedRoomCode}.`);
+  const player = addPlayer(room, user);
+  room.log.unshift(`${user.profile_name} joined ${normalizedRoomCode}.`);
 
   if (room.players.length === 4 && room.status === "waiting") {
     prepareToss(room);
@@ -128,18 +166,18 @@ async function handleJoin(request, response) {
 }
 
 async function handleCreateRoom(request, response) {
-  const body = await readJsonBody(request);
-  const name = String(body.playerName || "").trim().slice(0, 24);
-  const visibility = body.visibility === "private" ? "private" : "public";
-
-  if (!name) {
-    sendJson(response, 400, { ok: false, error: "Enter a player name to create a room." });
+  const user = await getSessionUser(request);
+  if (!user || !user.profile_name) {
+    sendJson(response, 401, { ok: false, error: "Must be logged in to create a room." });
     return;
   }
 
+  const body = await readJsonBody(request);
+  const visibility = body.visibility === "private" ? "private" : "public";
+
   const room = createRoom(visibility);
-  const player = addPlayer(room, name);
-  room.log.unshift(`${name} created ${room.code}.`);
+  const player = addPlayer(room, user);
+  room.log.unshift(`${user.profile_name} created ${room.code}.`);
   publishRoomList();
 
   sendJson(response, 200, {
@@ -328,9 +366,20 @@ function createRoom(visibility = "public") {
   return room;
 }
 
-function addPlayer(room, name) {
+function addPlayer(room, user) {
   const team = room.players.length < 2 ? "A" : "B";
-  const player = { id: crypto.randomUUID(), name, team };
+  const player = { 
+    id: user.id, 
+    name: user.profile_name, 
+    team,
+    stats: {
+      runsScored: 0,
+      ballsFaced: 0,
+      wicketsTaken: 0,
+      runsConceded: 0,
+      ballsBowled: 0
+    }
+  };
   room.players.push(player);
   room.hostId ||= player.id;
   return player;
@@ -449,19 +498,26 @@ function resolveBall(room) {
   const batterChoice = room.pendingChoices.batter;
   const bowlerChoice = room.pendingChoices.bowler;
   const isOut = batterChoice === bowlerChoice;
+  
+  const batter = getActiveBatter(room, battingTeam);
+  const bowler = getActiveBowler(room, bowlingTeam);
 
   battingScore.balls += 1;
+  if (bowler) bowler.stats.ballsBowled += 1;
+  if (batter) batter.stats.ballsFaced += 1;
 
   if (isOut) {
-    const batter = getActiveBatter(room, battingTeam);
     battingScore.wickets += 1;
     if (batter && !battingScore.outPlayerIds.includes(batter.id)) {
       battingScore.outPlayerIds.push(batter.id);
     }
+    if (bowler) bowler.stats.wicketsTaken += 1;
     battingScore.strikerIndex = getOnlyNotOutIndex(room, battingTeam);
     room.log.unshift(`Wicket! Both players chose ${batterChoice}.`);
   } else {
     battingScore.runs += batterChoice;
+    if (batter) batter.stats.runsScored += batterChoice;
+    if (bowler) bowler.stats.runsConceded += batterChoice;
     if (batterChoice % 2 === 1 && canRotateStrike(room, battingTeam)) {
       battingScore.strikerIndex = battingScore.strikerIndex === 0 ? 1 : 0;
     }
@@ -504,6 +560,11 @@ function advanceMatch(room) {
   room.status = "finished";
   room.winner = firstBattingRuns === chasingRuns ? "Tie" : firstBattingRuns > chasingRuns ? firstBattingTeam : chasingTeam;
   room.log.unshift(room.winner === "Tie" ? "Match tied." : `Team ${room.winner} wins.`);
+
+  // Save stats to database async
+  for (const player of room.players) {
+    db.updatePlayerStats(player.id, player.stats).catch(console.error);
+  }
 }
 
 function isInningsOver(room) {
@@ -781,4 +842,88 @@ function getCacheControl(filePath) {
   }
 
   return "public, max-age=3600";
+}
+
+// Auth helpers
+async function getSessionUser(request) {
+  const cookies = cookie.parse(request.headers.cookie || "");
+  const sessionId = cookies.session_id;
+  if (!sessionId) return null;
+
+  const session = await db.getSession(sessionId);
+  if (!session) return null;
+
+  const user = await db.getUserById(session.user_id);
+  return user;
+}
+
+async function handleAuthGoogle(request, response) {
+  const body = await readJsonBody(request);
+  try {
+    const ticket = await oauthClient.verifyIdToken({
+      idToken: body.credential,
+      audience: GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const user = await db.findOrCreateUserByGoogleId(payload.sub, payload.email);
+    const sessionId = await db.createSession(user.id);
+    
+    response.writeHead(200, {
+      "Set-Cookie": cookie.serialize("session_id", sessionId, {
+        httpOnly: true,
+        path: "/",
+        maxAge: 30 * 24 * 60 * 60,
+        sameSite: "lax",
+      }),
+      "Content-Type": "application/json"
+    });
+    response.end(JSON.stringify({ ok: true, user }));
+  } catch (error) {
+    sendJson(response, 401, { ok: false, error: "Authentication failed" });
+  }
+}
+
+async function handleAuthLogout(request, response) {
+  const cookies = cookie.parse(request.headers.cookie || "");
+  if (cookies.session_id) {
+    await db.destroySession(cookies.session_id);
+  }
+  response.writeHead(200, {
+    "Set-Cookie": cookie.serialize("session_id", "", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 0,
+      sameSite: "lax",
+    }),
+    "Content-Type": "application/json"
+  });
+  response.end(JSON.stringify({ ok: true }));
+}
+
+async function handleGetMe(request, response) {
+  const user = await getSessionUser(request);
+  if (!user) {
+    sendJson(response, 401, { ok: false, error: "Not logged in" });
+    return;
+  }
+  sendJson(response, 200, { ok: true, user });
+}
+
+async function handleProfileSetup(request, response) {
+  const user = await getSessionUser(request);
+  if (!user) {
+    sendJson(response, 401, { ok: false, error: "Not logged in" });
+    return;
+  }
+  
+  const body = await readJsonBody(request);
+  const name = String(body.profileName || "").trim().slice(0, 24);
+  if (!name) {
+    sendJson(response, 400, { ok: false, error: "Invalid profile name" });
+    return;
+  }
+  
+  await db.setProfileName(user.id, name);
+  const updatedUser = await db.getUserById(user.id);
+  sendJson(response, 200, { ok: true, user: updatedUser });
 }

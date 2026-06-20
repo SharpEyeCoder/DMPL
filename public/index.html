@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DMPL</title>
     <link rel="stylesheet" href="/styles.css?v=20260620-captain-toss" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
     <main class="app-shell">
@@ -20,33 +21,94 @@
         </div>
       </section>
 
-      <section class="join-panel" id="joinForm">
-        <label>
-          Player name
-          <input id="playerName" maxlength="24" placeholder="Selva" required />
-        </label>
-        <div class="create-actions">
-          <button type="button" data-create-room="public">Create public room</button>
-          <button class="secondary-create" type="button" data-create-room="private">Create private room</button>
+      <section class="login-panel" id="loginView">
+        <div class="panel-content">
+          <h2>Sign In</h2>
+          <p>Sign in with your Google account to play DMPL and track your stats.</p>
+          <div id="googleSignInContainer" class="google-btn-container"></div>
         </div>
-        <form class="join-code-form" id="joinCodeForm">
-          <label>
-            Room code
-            <input id="roomCode" maxlength="6" placeholder="A1B2C3" required />
-          </label>
-          <button type="submit">Join by code</button>
-        </form>
-        <div class="public-rooms">
-          <div class="panel-heading">
-            <h2>Public rooms</h2>
-            <button class="text-button" id="refreshRoomsButton" type="button">Refresh</button>
-          </div>
-          <div id="publicRoomsList" class="room-list"></div>
-        </div>
-        <p class="notice-text" id="notice"></p>
-        <p class="error-text" id="joinError"></p>
       </section>
 
+      <section class="profile-setup-panel hidden" id="profileSetupView">
+        <div class="panel-content">
+          <h2>Create Profile</h2>
+          <p>Choose a display name for your matches.</p>
+          <form id="profileSetupForm">
+            <label>
+              Display Name
+              <input id="profileNameInput" maxlength="24" placeholder="e.g. MS Dhoni" required />
+            </label>
+            <button type="submit">Save Profile</button>
+            <p class="error-text" id="profileSetupError"></p>
+          </form>
+        </div>
+      </section>
+
+      <section class="dashboard-panel hidden" id="dashboardView">
+        <div class="dashboard-layout">
+          <div class="stats-section">
+            <h2>Your Stats</h2>
+            <div class="stats-grid">
+              <div class="stat-card">
+                <p class="stat-label">Matches</p>
+                <p class="stat-value" id="statMatches">0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Runs</p>
+                <p class="stat-value" id="statRuns">0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Highest Score</p>
+                <p class="stat-value" id="statHighestScore">0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Average</p>
+                <p class="stat-value" id="statAverage">0.0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Strike Rate</p>
+                <p class="stat-value" id="statStrikeRate">0.0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Wickets</p>
+                <p class="stat-value" id="statWickets">0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Economy</p>
+                <p class="stat-value" id="statEconomy">0.0</p>
+              </div>
+              <div class="stat-card">
+                <p class="stat-label">Best Bowling</p>
+                <p class="stat-value" id="statBestBowling">0/0</p>
+              </div>
+            </div>
+            <button class="secondary-action" type="button" id="logoutButton">Sign Out</button>
+          </div>
+
+          <div class="join-panel">
+            <div class="create-actions">
+              <button type="button" data-create-room="public">Create public room</button>
+              <button class="secondary-create" type="button" data-create-room="private">Create private room</button>
+            </div>
+            <form class="join-code-form" id="joinCodeForm">
+              <label>
+                Room code
+                <input id="roomCode" maxlength="6" placeholder="A1B2C3" required />
+              </label>
+              <button type="submit">Join by code</button>
+            </form>
+            <div class="public-rooms">
+              <div class="panel-heading">
+                <h2>Public rooms</h2>
+                <button class="text-button" id="refreshRoomsButton" type="button">Refresh</button>
+              </div>
+              <div id="publicRoomsList" class="room-list"></div>
+            </div>
+            <p class="notice-text" id="notice"></p>
+            <p class="error-text" id="joinError"></p>
+          </div>
+        </div>
+      </section>
       <div class="match-grid hidden" id="matchView">
         <section class="scoreboard">
           <div class="teams">
