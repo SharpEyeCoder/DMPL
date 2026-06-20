@@ -634,8 +634,41 @@ input {
   color: #b33927;
 }
 
+.dashboard-header, .profile-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 24px 32px;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+  margin-bottom: 32px;
+}
+
+.dashboard-header h2, .profile-header h2 {
+  margin: 0;
+  color: #17211f;
+  font-size: 1.5rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.profile-content {
+  text-align: left;
+  max-width: 800px;
+}
+
 @media (max-width: 768px) {
   .dashboard-layout {
     grid-template-columns: 1fr;
+  }
+  
+  .dashboard-header, .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
   }
 }

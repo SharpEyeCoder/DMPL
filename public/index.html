@@ -45,9 +45,48 @@
       </section>
 
       <section class="dashboard-panel hidden" id="dashboardView">
+        <div class="dashboard-header">
+          <h2>Welcome, <span id="dashboardUserName">Player</span></h2>
+          <div class="header-actions">
+            <button class="secondary-action" type="button" id="viewProfileButton">My Profile & Stats</button>
+            <button class="secondary-action" type="button" id="logoutButton">Sign Out</button>
+          </div>
+        </div>
+
         <div class="dashboard-layout">
+          <div class="join-panel">
+            <div class="create-actions">
+              <button type="button" data-create-room="public">Create public room</button>
+              <button class="secondary-create" type="button" data-create-room="private">Create private room</button>
+            </div>
+            <form class="join-code-form" id="joinCodeForm">
+              <label>
+                Room code
+                <input id="roomCode" maxlength="6" placeholder="A1B2C3" required />
+              </label>
+              <button type="submit">Join by code</button>
+            </form>
+            <div class="public-rooms">
+              <div class="panel-heading">
+                <h2>Public rooms</h2>
+                <button class="text-button" id="refreshRoomsButton" type="button">Refresh</button>
+              </div>
+              <div id="publicRoomsList" class="room-list"></div>
+            </div>
+            <p class="notice-text" id="notice"></p>
+            <p class="error-text" id="joinError"></p>
+          </div>
+        </div>
+      </section>
+      <section class="profile-panel hidden" id="profileView">
+        <div class="panel-content profile-content">
+          <div class="profile-header">
+            <button class="text-button" type="button" id="backToDashboardButton">← Back to Lobby</button>
+            <h2 id="profileUserName">Player Profile</h2>
+          </div>
+          
           <div class="stats-section">
-            <h2>Your Stats</h2>
+            <h3>Career Statistics</h3>
             <div class="stats-grid">
               <div class="stat-card">
                 <p class="stat-label">Matches</p>
@@ -82,33 +121,10 @@
                 <p class="stat-value" id="statBestBowling">0/0</p>
               </div>
             </div>
-            <button class="secondary-action" type="button" id="logoutButton">Sign Out</button>
-          </div>
-
-          <div class="join-panel">
-            <div class="create-actions">
-              <button type="button" data-create-room="public">Create public room</button>
-              <button class="secondary-create" type="button" data-create-room="private">Create private room</button>
-            </div>
-            <form class="join-code-form" id="joinCodeForm">
-              <label>
-                Room code
-                <input id="roomCode" maxlength="6" placeholder="A1B2C3" required />
-              </label>
-              <button type="submit">Join by code</button>
-            </form>
-            <div class="public-rooms">
-              <div class="panel-heading">
-                <h2>Public rooms</h2>
-                <button class="text-button" id="refreshRoomsButton" type="button">Refresh</button>
-              </div>
-              <div id="publicRoomsList" class="room-list"></div>
-            </div>
-            <p class="notice-text" id="notice"></p>
-            <p class="error-text" id="joinError"></p>
           </div>
         </div>
       </section>
+
       <div class="match-grid hidden" id="matchView">
         <section class="scoreboard">
           <div class="teams">
