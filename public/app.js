@@ -1,6 +1,7 @@
 const RUN_OPTIONS = [1, 2, 3, 4, 6];
 
 const state = {
+  user: null,
   playerId: "",
   roomCode: "",
   room: null,
@@ -9,9 +10,23 @@ const state = {
 };
 
 const elements = {
-  joinForm: document.querySelector("#joinForm"),
+  loginView: document.querySelector("#loginView"),
+  profileSetupView: document.querySelector("#profileSetupView"),
+  dashboardView: document.querySelector("#dashboardView"),
+  profileSetupForm: document.querySelector("#profileSetupForm"),
+  profileNameInput: document.querySelector("#profileNameInput"),
+  profileSetupError: document.querySelector("#profileSetupError"),
+  logoutButton: document.querySelector("#logoutButton"),
+  statMatches: document.querySelector("#statMatches"),
+  statRuns: document.querySelector("#statRuns"),
+  statHighestScore: document.querySelector("#statHighestScore"),
+  statAverage: document.querySelector("#statAverage"),
+  statStrikeRate: document.querySelector("#statStrikeRate"),
+  statWickets: document.querySelector("#statWickets"),
+  statEconomy: document.querySelector("#statEconomy"),
+  statBestBowling: document.querySelector("#statBestBowling"),
+  
   joinCodeForm: document.querySelector("#joinCodeForm"),
-  playerName: document.querySelector("#playerName"),
   roomCode: document.querySelector("#roomCode"),
   joinError: document.querySelector("#joinError"),
   playError: document.querySelector("#playError"),
@@ -49,9 +64,98 @@ const elements = {
 
 elements.runPad.innerHTML = RUN_OPTIONS.map((run) => `<button type="button" data-run="${run}">${run}</button>`).join("");
 
-setupJoinLink();
-loadPublicRooms();
-openLobbyEvents();
+async function checkAuth() {
+  const response = await fetch("/api/me");
+  if (response.ok) {
+    const data = await response.json();
+    state.user = data.user;
+    if (!state.user.profile_name) {
+      showView(elements.profileSetupView);
+    } else {
+      state.playerId = state.user.id;
+      showDashboard();
+    }
+  } else {
+    showView(elements.loginView);
+    renderGoogleSignIn();
+  }
+}
+
+function showView(viewElement) {
+  elements.loginView.classList.add("hidden");
+  elements.profileSetupView.classList.add("hidden");
+  elements.dashboardView.classList.add("hidden");
+  elements.matchView.classList.add("hidden");
+  if (viewElement) viewElement.classList.remove("hidden");
+}
+
+function renderGoogleSignIn() {
+  google.accounts.id.initialize({
+    client_id: "657579248075-n52mu3kmfe4fpja5ejmu3n9rg7q5o8pr.apps.googleusercontent.com",
+    callback: handleGoogleSignIn
+  });
+  google.accounts.id.renderButton(
+    document.getElementById("googleSignInContainer"),
+    { theme: "outline", size: "large" }
+  );
+}
+
+async function handleGoogleSignIn(response) {
+  const res = await postJson("/api/auth/google", { credential: response.credential });
+  if (res.ok) {
+    state.user = res.user;
+    if (!state.user.profile_name) {
+      showView(elements.profileSetupView);
+    } else {
+      state.playerId = state.user.id;
+      showDashboard();
+    }
+  }
+}
+
+elements.profileSetupForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  elements.profileSetupError.textContent = "";
+  const res = await postJson("/api/profile", { profileName: elements.profileNameInput.value });
+  if (res.ok) {
+    state.user = res.user;
+    state.playerId = state.user.id;
+    showDashboard();
+  } else {
+    elements.profileSetupError.textContent = res.error || "Failed to save profile.";
+  }
+});
+
+elements.logoutButton.addEventListener("click", async () => {
+  await postJson("/api/auth/logout", {});
+  state.user = null;
+  state.playerId = "";
+  if (state.events) state.events.close();
+  showView(elements.loginView);
+  renderGoogleSignIn();
+});
+
+function showDashboard() {
+  showView(elements.dashboardView);
+  
+  // Populate stats
+  const s = state.user;
+  elements.statMatches.textContent = s.matches_played;
+  elements.statRuns.textContent = s.runs_scored;
+  elements.statHighestScore.textContent = s.highest_score;
+  elements.statAverage.textContent = s.matches_played > 0 ? (s.runs_scored / Math.max(1, s.matches_played)).toFixed(1) : "0.0";
+  elements.statStrikeRate.textContent = s.balls_faced > 0 ? ((s.runs_scored / s.balls_faced) * 100).toFixed(1) : "0.0";
+  
+  elements.statWickets.textContent = s.wickets_taken;
+  elements.statEconomy.textContent = s.balls_bowled > 0 ? ((s.runs_conceded / (s.balls_bowled / 6))).toFixed(1) : "0.0";
+  elements.statBestBowling.textContent = `${s.best_bowling_wickets}/${s.best_bowling_runs}`;
+
+  setupJoinLink();
+  loadPublicRooms();
+  openLobbyEvents();
+}
+
+window.addEventListener('load', checkAuth);
 
 elements.joinCodeForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -133,7 +237,6 @@ async function createRoom(visibility) {
   elements.notice.textContent = "";
 
   const response = await postJson("/api/rooms", {
-    playerName: elements.playerName.value,
     visibility
   });
 
@@ -150,7 +253,6 @@ async function joinRoom(roomCode) {
   elements.notice.textContent = "";
 
   const response = await postJson("/api/join", {
-    playerName: elements.playerName.value,
     roomCode
   });
 
@@ -166,8 +268,7 @@ function enterRoom(response) {
   state.playerId = response.playerId;
   state.roomCode = response.roomCode;
   state.room = response.room;
-  elements.joinForm.classList.add("hidden");
-  elements.matchView.classList.remove("hidden");
+  showView(elements.matchView);
   elements.roomLabel.textContent = state.roomCode;
   openEvents();
   render();
@@ -302,7 +403,7 @@ function renderPlayPanel(room) {
 }
 
 function renderToss(room) {
-  const showToss = room.status === "toss" || room.toss?.status === "decision";
+  const showToss = room.status === "toss";
   const isCallingCaptain = room.toss?.status === "call" && room.captains?.[room.toss.callingTeam] === state.playerId;
   const isWinningCaptain =
     room.toss?.status === "decision" && room.captains?.[room.toss.winnerTeam] === state.playerId;
