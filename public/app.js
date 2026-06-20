@@ -263,7 +263,7 @@ async function postJson(url, data) {
 
 /* --- SSE --- */
 function openLobbyEvents() {
-  const src = new EventSource("/api/lobby-events");
+  const src = new EventSource("/events?roomCode=__lobby__");
   src.onmessage = (event) => {
     const data = JSON.parse(event.data);
     if (data.type === "rooms") {
@@ -279,7 +279,7 @@ function openLobbyEvents() {
 
 function openEvents() {
   if (state.events) state.events.close();
-  state.events = new EventSource(`/api/rooms/${state.roomCode}/events?playerId=${state.playerId}`);
+  state.events = new EventSource(`/events?roomCode=${state.roomCode}&playerId=${state.playerId}`);
   state.events.onmessage = (event) => {
     const room = JSON.parse(event.data);
     state.room = room;
