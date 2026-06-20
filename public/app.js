@@ -1,4 +1,4 @@
-const RUN_OPTIONS = [1, 2, 3, 4, 6];
+const RUN_OPTIONS = [1, 2, 3, 4, 5, 6]; // The design had 1-6 but wait, run pad in design has 1, 2, 3, 4, 5, 6. Let's add 5 just for UI completeness.
 
 const state = {
   user: null,
@@ -9,65 +9,95 @@ const state = {
   lastTossFlip: null
 };
 
-const elements = {
-  loginView: document.querySelector("#loginView"),
-  profileSetupView: document.querySelector("#profileSetupView"),
-  dashboardView: document.querySelector("#dashboardView"),
-  profileView: document.querySelector("#profileView"),
-  profileSetupForm: document.querySelector("#profileSetupForm"),
-  profileNameInput: document.querySelector("#profileNameInput"),
-  profileSetupError: document.querySelector("#profileSetupError"),
-  logoutButton: document.querySelector("#logoutButton"),
-  viewProfileButton: document.querySelector("#viewProfileButton"),
-  backToDashboardButton: document.querySelector("#backToDashboardButton"),
-  dashboardUserName: document.querySelector("#dashboardUserName"),
-  profileUserName: document.querySelector("#profileUserName"),
-  statMatches: document.querySelector("#statMatches"),
-  statRuns: document.querySelector("#statRuns"),
-  statHighestScore: document.querySelector("#statHighestScore"),
-  statAverage: document.querySelector("#statAverage"),
-  statStrikeRate: document.querySelector("#statStrikeRate"),
-  statWickets: document.querySelector("#statWickets"),
-  statEconomy: document.querySelector("#statEconomy"),
-  statBestBowling: document.querySelector("#statBestBowling"),
+const el = {
+  loginView: document.getElementById("loginView"),
+  profileSetupView: document.getElementById("profileSetupView"),
+  appShell: document.getElementById("appShell"),
+  dashboardView: document.getElementById("dashboardView"),
+  lobbyView: document.getElementById("lobbyView"),
+  matchView: document.getElementById("matchView"),
+  resultView: document.getElementById("resultView"),
   
-  joinCodeForm: document.querySelector("#joinCodeForm"),
-  roomCode: document.querySelector("#roomCode"),
-  joinError: document.querySelector("#joinError"),
-  playError: document.querySelector("#playError"),
-  matchView: document.querySelector("#matchView"),
-  roomLabel: document.querySelector("#roomLabel"),
-  scoreA: document.querySelector("#scoreA"),
-  scoreB: document.querySelector("#scoreB"),
-  oversA: document.querySelector("#oversA"),
-  oversB: document.querySelector("#oversB"),
-  teamA: document.querySelector("#teamA"),
-  teamB: document.querySelector("#teamB"),
-  matchStatus: document.querySelector("#matchStatus"),
-  teamAPlayers: document.querySelector("#teamAPlayers"),
-  teamBPlayers: document.querySelector("#teamBPlayers"),
-  roleTitle: document.querySelector("#roleTitle"),
-  roleHelp: document.querySelector("#roleHelp"),
-  runPad: document.querySelector("#runPad"),
-  tossPanel: document.querySelector("#tossPanel"),
-  coin: document.querySelector("#coin"),
-  coinFace: document.querySelector("#coinFace"),
-  tossTitle: document.querySelector("#tossTitle"),
-  tossHelp: document.querySelector("#tossHelp"),
-  tossCallActions: document.querySelector("#tossCallActions"),
-  tossDecisionActions: document.querySelector("#tossDecisionActions"),
-  lastBall: document.querySelector("#lastBall"),
-  lastBallText: document.querySelector("#lastBallText"),
-  restartButton: document.querySelector("#restartButton"),
-  matchLog: document.querySelector("#matchLog"),
-  notice: document.querySelector("#notice"),
-  publicRoomsList: document.querySelector("#publicRoomsList"),
-  refreshRoomsButton: document.querySelector("#refreshRoomsButton"),
-  shareLink: document.querySelector("#shareLink"),
-  copyLinkButton: document.querySelector("#copyLinkButton")
+  navTabs: document.querySelectorAll(".nav-menu li"),
+  navMatchTab: document.getElementById("navMatchTab"),
+  navResultTab: document.getElementById("navResultTab"),
+  
+  // Auth & Profile
+  profileSetupForm: document.getElementById("profileSetupForm"),
+  profileNameInput: document.getElementById("profileNameInput"),
+  profileSetupError: document.getElementById("profileSetupError"),
+  logoutButton: document.getElementById("logoutButton"),
+  guestPlayBtn: document.getElementById("guestPlayBtn"),
+  
+  // Sidebar
+  sidebarUserName: document.getElementById("sidebarUserName"),
+  
+  // Dashboard Stats
+  statMatches: document.getElementById("statMatches"),
+  statWinRate: document.getElementById("statWinRate"),
+  statRuns: document.getElementById("statRuns"),
+  statWickets: document.getElementById("statWickets"),
+  statHighestScore: document.getElementById("statHighestScore"),
+  statAverage: document.getElementById("statAverage"),
+  statStrikeRate: document.getElementById("statStrikeRate"),
+  statEconomy: document.getElementById("statEconomy"),
+  
+  // Lobby Controls
+  btnCreatePublic: document.getElementById("btnCreatePublic"),
+  btnCreatePrivate: document.getElementById("btnCreatePrivate"),
+  joinCodeForm: document.getElementById("joinCodeForm"),
+  roomCodeInput: document.getElementById("roomCodeInput"),
+  joinError: document.getElementById("joinError"),
+  noticeText: document.getElementById("noticeText"),
+  publicRoomsList: document.getElementById("publicRoomsList"),
+  
+  // Active Lobby
+  roomControls: document.getElementById("roomControls"),
+  activeRoomContainer: document.getElementById("activeRoomContainer"),
+  lobbyRoomCode: document.getElementById("lobbyRoomCode"),
+  teamASlots: document.getElementById("teamASlots"),
+  teamBSlots: document.getElementById("teamBSlots"),
+  startMatchBtn: document.getElementById("startMatchBtn"),
+  lobbyStatusMsg: document.getElementById("lobbyStatusMsg"),
+
+  // Toss
+  tossOverlay: document.getElementById("tossOverlay"),
+  tossCoinAnim: document.getElementById("tossCoinAnim"),
+  tossStatusText: document.getElementById("tossStatusText"),
+  tossCallActions: document.getElementById("tossCallActions"),
+  tossChoiceActions: document.getElementById("tossChoiceActions"),
+  
+  // Match View
+  teamAScoreBox: document.getElementById("teamAScoreBox"),
+  teamBScoreBox: document.getElementById("teamBScoreBox"),
+  teamALive: document.getElementById("teamALive"),
+  teamBLive: document.getElementById("teamBLive"),
+  scoreA: document.getElementById("scoreA"),
+  scoreB: document.getElementById("scoreB"),
+  oversA: document.getElementById("oversA"),
+  oversB: document.getElementById("oversB"),
+  crrA: document.getElementById("crrA"),
+  crrB: document.getElementById("crrB"),
+  targetA: document.getElementById("targetA"),
+  targetB: document.getElementById("targetB"),
+  
+  bowlerName: document.getElementById("bowlerName"),
+  bowlerChoice: document.getElementById("bowlerChoice"),
+  batterName: document.getElementById("batterName"),
+  batterChoice: document.getElementById("batterChoice"),
+  playerRoleBadge: document.getElementById("playerRoleBadge"),
+  runPad: document.getElementById("runPad"),
+  matchLog: document.getElementById("matchLog"),
+  
+  // Result View
+  winnerText: document.getElementById("winnerText"),
+  victoryMargin: document.getElementById("victoryMargin"),
+  scorecardTable: document.getElementById("scorecardTable"),
+  playAgainBtn: document.getElementById("playAgainBtn"),
+  exitLobbyBtn: document.getElementById("exitLobbyBtn"),
 };
 
-elements.runPad.innerHTML = RUN_OPTIONS.map((run) => `<button type="button" data-run="${run}">${run}</button>`).join("");
+/* --- INITIALIZATION --- */
 
 async function checkAuth() {
   const response = await fetch("/api/me");
@@ -75,558 +105,423 @@ async function checkAuth() {
     const data = await response.json();
     state.user = data.user;
     if (!state.user.profile_name) {
-      showView(elements.profileSetupView);
+      switchMainView(el.profileSetupView);
     } else {
       state.playerId = state.user.id;
-      showDashboard();
+      initDashboard();
     }
   } else {
-    showView(elements.loginView);
+    switchMainView(el.loginView);
     renderGoogleSignIn();
   }
 }
 
-function showView(viewElement) {
-  elements.loginView.classList.add("hidden");
-  elements.profileSetupView.classList.add("hidden");
-  elements.dashboardView.classList.add("hidden");
-  elements.profileView.classList.add("hidden");
-  elements.matchView.classList.add("hidden");
-  if (viewElement) viewElement.classList.remove("hidden");
+function switchMainView(view) {
+  el.loginView.classList.add("hidden");
+  el.profileSetupView.classList.add("hidden");
+  el.appShell.classList.add("hidden");
+  view.classList.remove("hidden");
 }
+
+function switchTab(tabId) {
+  el.dashboardView.classList.add("hidden");
+  el.lobbyView.classList.add("hidden");
+  el.matchView.classList.add("hidden");
+  el.resultView.classList.add("hidden");
+  
+  document.getElementById(tabId).classList.remove("hidden");
+  
+  el.navTabs.forEach(tab => {
+    tab.classList.toggle("active", tab.dataset.target === tabId);
+  });
+}
+
+el.navTabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    switchTab(tab.dataset.target);
+  });
+});
+
+/* --- AUTHENTICATION --- */
 
 function renderGoogleSignIn() {
   google.accounts.id.initialize({
     client_id: "657579248075-n52mu3kmfe4fpja5ejmu3n9rg7q5o8pr.apps.googleusercontent.com",
-    callback: handleGoogleSignIn
-  });
-  google.accounts.id.renderButton(
-    document.getElementById("googleSignInContainer"),
-    { theme: "outline", size: "large" }
-  );
-}
-
-async function handleGoogleSignIn(response) {
-  const res = await postJson("/api/auth/google", { credential: response.credential });
-  if (res.ok) {
-    state.user = res.user;
-    if (!state.user.profile_name) {
-      showView(elements.profileSetupView);
-    } else {
-      state.playerId = state.user.id;
-      showDashboard();
+    callback: async (response) => {
+      const res = await postJson("/api/auth/google", { credential: response.credential });
+      if (res.ok) {
+        state.user = res.user;
+        if (!state.user.profile_name) switchMainView(el.profileSetupView);
+        else { state.playerId = state.user.id; initDashboard(); }
+      }
     }
-  }
+  });
+  google.accounts.id.renderButton(document.getElementById("googleSignInContainer"), { theme: "filled_black", size: "large", type: "standard", shape: "rectangular" });
 }
 
-elements.profileSetupForm.addEventListener("submit", async (event) => {
+el.guestPlayBtn.addEventListener("click", () => {
+  alert("Guest play is disabled for stat tracking. Please login with Google.");
+});
+
+el.profileSetupForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  elements.profileSetupError.textContent = "";
-  const res = await postJson("/api/profile", { profileName: elements.profileNameInput.value });
+  el.profileSetupError.textContent = "";
+  const res = await postJson("/api/profile", { profileName: el.profileNameInput.value });
   if (res.ok) {
     state.user = res.user;
     state.playerId = state.user.id;
-    showDashboard();
+    initDashboard();
   } else {
-    elements.profileSetupError.textContent = res.error || "Failed to save profile.";
+    el.profileSetupError.textContent = res.error || "Failed to save profile.";
   }
 });
 
-elements.logoutButton.addEventListener("click", async () => {
+el.logoutButton.addEventListener("click", async () => {
   await postJson("/api/auth/logout", {});
-  state.user = null;
-  state.playerId = "";
-  if (state.events) state.events.close();
-  showView(elements.loginView);
-  renderGoogleSignIn();
+  window.location.reload();
 });
 
-elements.viewProfileButton.addEventListener("click", () => {
-  showProfile();
-});
-
-elements.backToDashboardButton.addEventListener("click", () => {
-  showDashboard();
-});
-
-function showDashboard() {
-  showView(elements.dashboardView);
-  const s = state.user;
-  elements.dashboardUserName.textContent = s.profile_name;
+function initDashboard() {
+  switchMainView(el.appShell);
+  switchTab("dashboardView");
   
-  setupJoinLink();
+  const s = state.user;
+  el.sidebarUserName.textContent = s.profile_name;
+  
+  el.statMatches.textContent = s.matches_played;
+  el.statWinRate.textContent = s.matches_played > 0 ? Math.round((0 /* Need win tracking, spoof for now */ / s.matches_played) * 100) + "%" : "0%";
+  el.statRuns.textContent = s.runs_scored;
+  el.statWickets.textContent = s.wickets_taken;
+  el.statHighestScore.textContent = s.highest_score;
+  el.statAverage.textContent = s.matches_played > 0 ? (s.runs_scored / Math.max(1, s.matches_played)).toFixed(1) : "0.0";
+  el.statStrikeRate.textContent = s.balls_faced > 0 ? ((s.runs_scored / s.balls_faced) * 100).toFixed(1) : "0.0";
+  el.statEconomy.textContent = s.balls_bowled > 0 ? ((s.runs_conceded / (s.balls_bowled / 6))).toFixed(1) : "0.0";
+
   loadPublicRooms();
   openLobbyEvents();
-}
-
-function showProfile() {
-  showView(elements.profileView);
   
-  const s = state.user;
-  elements.profileUserName.textContent = s.profile_name;
+  // Build Run Pad
+  el.runPad.innerHTML = RUN_OPTIONS.map((run) => `<button class="key-btn" data-label="${run === 4 ? 'FOU' : run === 6 ? 'SIX' : 'RUN'}" data-run="${run}">${run}</button>`).join("");
   
-  // Populate stats
-  elements.statMatches.textContent = s.matches_played;
-  elements.statRuns.textContent = s.runs_scored;
-  elements.statHighestScore.textContent = s.highest_score;
-  elements.statAverage.textContent = s.matches_played > 0 ? (s.runs_scored / Math.max(1, s.matches_played)).toFixed(1) : "0.0";
-  elements.statStrikeRate.textContent = s.balls_faced > 0 ? ((s.runs_scored / s.balls_faced) * 100).toFixed(1) : "0.0";
-  
-  elements.statWickets.textContent = s.wickets_taken;
-  elements.statEconomy.textContent = s.balls_bowled > 0 ? ((s.runs_conceded / (s.balls_bowled / 6))).toFixed(1) : "0.0";
-  elements.statBestBowling.textContent = `${s.best_bowling_wickets}/${s.best_bowling_runs}`;
-}
-
-window.addEventListener('load', checkAuth);
-
-elements.joinCodeForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  await joinRoom(elements.roomCode.value);
-});
-
-document.addEventListener("click", async (event) => {
-  const createButton = event.target.closest("button[data-create-room]");
-  if (createButton) {
-    await createRoom(createButton.dataset.createRoom);
-    return;
-  }
-
-  const publicRoomButton = event.target.closest("button[data-join-room-code]");
-  if (publicRoomButton) {
-    await joinRoom(publicRoomButton.dataset.joinRoomCode);
-  }
-});
-
-elements.refreshRoomsButton.addEventListener("click", loadPublicRooms);
-
-elements.copyLinkButton.addEventListener("click", async () => {
-  if (!state.room) return;
-
-  const link = createAbsoluteJoinUrl(state.room.joinUrl);
-  await navigator.clipboard?.writeText(link);
-  elements.playError.textContent = "Room link copied.";
-});
-
-document.addEventListener("click", async (event) => {
-  const callButton = event.target.closest("button[data-toss-call]");
-  if (callButton) {
-    await submitTossCall(callButton.dataset.tossCall);
-    return;
-  }
-
-  const decisionButton = event.target.closest("button[data-toss-decision]");
-  if (decisionButton) {
-    await submitTossDecision(decisionButton.dataset.tossDecision);
-  }
-});
-
-async function submitTossCall(call) {
-  if (!state.room) return;
-  elements.playError.textContent = "";
-  elements.coin.classList.remove("coin-flip");
-  window.requestAnimationFrame(() => elements.coin.classList.add("coin-flip"));
-
-  const response = await postJson("/api/toss", {
-    roomCode: state.roomCode,
-    playerId: state.playerId,
-    action: "call",
-    call
+  document.querySelectorAll(".key-btn").forEach(btn => {
+    btn.addEventListener("click", () => handlePlayCall(parseInt(btn.dataset.run, 10)));
   });
-
-  if (!response.ok) {
-    elements.playError.textContent = response.error || "Toss failed.";
-  }
 }
 
-async function submitTossDecision(decision) {
-  if (!state.room) return;
-  elements.playError.textContent = "";
+/* --- LOBBY LOGIC --- */
 
-  const response = await postJson("/api/toss", {
-    roomCode: state.roomCode,
-    playerId: state.playerId,
-    action: "decision",
-    decision
-  });
+el.btnCreatePublic.addEventListener("click", () => createRoom("public"));
+el.btnCreatePrivate.addEventListener("click", () => createRoom("private"));
 
-  if (!response.ok) {
-    elements.playError.textContent = response.error || "Decision failed.";
-  }
-}
+el.joinCodeForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  await joinRoom(el.roomCodeInput.value);
+});
 
 async function createRoom(visibility) {
-  elements.joinError.textContent = "";
-  elements.notice.textContent = "";
-
-  const response = await postJson("/api/rooms", {
-    visibility
-  });
-
-  if (!response.ok) {
-    elements.joinError.textContent = response.error || "Could not create the room.";
-    return;
-  }
-
-  enterRoom(response);
+  el.joinError.textContent = "";
+  const response = await postJson("/api/rooms", { visibility });
+  if (response.ok) enterRoom(await response.json());
+  else el.joinError.textContent = response.error || "Could not create room";
 }
 
 async function joinRoom(roomCode) {
-  elements.joinError.textContent = "";
-  elements.notice.textContent = "";
-
-  const response = await postJson("/api/join", {
-    roomCode
-  });
-
-  if (!response.ok) {
-    elements.joinError.textContent = response.error || "Could not join the room.";
-    return;
-  }
-
-  enterRoom(response);
+  el.joinError.textContent = "";
+  const response = await postJson("/api/join", { roomCode });
+  if (response.ok) enterRoom(await response.json());
+  else el.joinError.textContent = response.error || "Room full or not found";
 }
 
 function enterRoom(response) {
   state.playerId = response.playerId;
   state.roomCode = response.roomCode;
   state.room = response.room;
-  showView(elements.matchView);
-  elements.roomLabel.textContent = state.roomCode;
+  
+  el.roomControls.classList.add("hidden");
+  el.activeRoomContainer.classList.remove("hidden");
+  el.lobbyRoomCode.textContent = state.roomCode;
+  
+  switchTab("lobbyView");
   openEvents();
-  render();
+  renderLobby();
 }
 
-elements.runPad.addEventListener("click", async (event) => {
-  const button = event.target.closest("button[data-run]");
-  if (!button) return;
-
-  elements.playError.textContent = "";
-  const response = await postJson("/api/choice", {
-    roomCode: state.roomCode,
-    playerId: state.playerId,
-    run: Number(button.dataset.run)
+/* --- API HELPERS --- */
+async function postJson(url, data) {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
   });
-
-  if (!response.ok) {
-    elements.playError.textContent = response.error || "Choice failed.";
+  if (res.ok) {
+    const json = await res.json().catch(() => ({}));
+    return { ok: true, json: () => Promise.resolve(json), ...json };
   }
-});
+  const err = await res.json().catch(() => ({}));
+  return { ok: false, error: err.error || "Request failed" };
+}
 
-document.addEventListener("click", async (event) => {
-  const button = event.target.closest("button[data-kick-player-id]");
-  if (!button) return;
-
-  elements.playError.textContent = "";
-  const response = await postJson("/api/kick", {
-    roomCode: state.roomCode,
-    hostPlayerId: state.playerId,
-    targetPlayerId: button.dataset.kickPlayerId
-  });
-
-  if (!response.ok) {
-    elements.playError.textContent = response.error || "Kick failed.";
-  }
-});
-
-elements.restartButton.addEventListener("click", async () => {
-  elements.playError.textContent = "";
-  const response = await postJson("/api/restart", {
-    roomCode: state.roomCode
-  });
-
-  if (!response.ok) {
-    elements.playError.textContent = response.error || "Restart failed.";
-  }
-});
+/* --- SSE --- */
+function openLobbyEvents() {
+  const src = new EventSource("/api/lobby-events");
+  src.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    if (data.type === "rooms") {
+      el.publicRoomsList.innerHTML = data.rooms.map(r => 
+        `<div style="display:flex; justify-content:space-between; background: var(--bg-darker); padding: 10px; border: 2px solid var(--border-color);">
+          <span style="font-family: var(--font-heading); font-style: italic; font-size: 1.5rem;">${r.hostName}'s Room</span>
+          <button class="brutalist-btn" onclick="joinRoom('${r.code}')">JOIN</button>
+        </div>`
+      ).join("") || "<span style='color: var(--text-muted)'>No public rooms right now.</span>";
+    }
+  };
+}
 
 function openEvents() {
-  state.events?.close();
-  state.events = new EventSource(
-    `/events?roomCode=${encodeURIComponent(state.roomCode)}&playerId=${encodeURIComponent(state.playerId)}`
-  );
+  if (state.events) state.events.close();
+  state.events = new EventSource(`/api/rooms/${state.roomCode}/events?playerId=${state.playerId}`);
   state.events.onmessage = (event) => {
-    state.room = JSON.parse(event.data);
-    render();
+    const room = JSON.parse(event.data);
+    state.room = room;
+    
+    if (room.status === "waiting") renderLobby();
+    else if (room.status === "toss") renderToss();
+    else if (room.status === "playing") renderMatch();
+    else if (room.status === "finished") renderResult();
   };
-  state.events.addEventListener("kicked-player", (event) => {
-    const payload = JSON.parse(event.data);
-    leaveRoom(payload.message || "You were kicked from the room.");
-  });
 }
 
-function render() {
-  const room = state.room;
-  if (!room) return;
-
-  renderScore("A", room.score.A);
-  renderScore("B", room.score.B);
-  elements.teamA.classList.toggle("active", room.battingTeam === "A");
-  elements.teamB.classList.toggle("active", room.battingTeam === "B");
-  elements.matchStatus.textContent = getMatchStatus(room);
-  renderPlayers("A", elements.teamAPlayers);
-  renderPlayers("B", elements.teamBPlayers);
-  renderToss(room);
-  renderPlayPanel(room);
-  renderLog(room);
-  renderShareLink(room);
-}
-
-function renderScore(team, score) {
-  elements[`score${team}`].textContent = `${score.runs}/${score.wickets}`;
-  elements[`overs${team}`].textContent = `${Math.floor(score.balls / 6)}.${score.balls % 6} overs`;
-}
-
-function renderPlayers(team, container) {
-  const isHost = state.room.hostId === state.playerId;
-  container.innerHTML = state.room.players
-    .filter((player) => player.team === team)
-    .map(
-      (player) => `
-        <div class="player-row">
-          <span>
-            ${escapeHtml(player.name)}
-            ${player.id === state.room.hostId ? '<b class="host-badge">Host</b>' : ""}
-            ${player.id === state.room.captains?.[team] ? '<b class="captain-badge">Captain</b>' : ""}
-          </span>
-          <div class="player-actions">
-            <small>${escapeHtml(getRoleLabel(player))}</small>
-            ${
-              isHost && player.id !== state.playerId
-                ? `<button class="kick-button" type="button" data-kick-player-id="${escapeHtml(player.id)}">Kick</button>`
-                : ""
-            }
-          </div>
-        </div>
-      `
-    )
-    .join("");
-}
-
-function renderPlayPanel(room) {
-  const role = getRole(state.playerId);
-  const hasChosen = role === "batter" ? room.pendingChoices.batter : room.pendingChoices.bowler;
-  const canChoose = room.status === "playing" && (role === "batter" || role === "bowler") && !hasChosen;
-
-  elements.roleTitle.textContent = roleLabel(role);
-  elements.roleHelp.textContent = getRoleHelp(room, role, hasChosen);
-
-  for (const button of elements.runPad.querySelectorAll("button")) {
-    button.disabled = !canChoose;
-  }
-
-  if (room.lastBall) {
-    elements.lastBall.classList.remove("hidden");
-    elements.lastBallText.textContent = `Batter ${room.lastBall.batterChoice} / Bowler ${room.lastBall.bowlerChoice}`;
+/* --- RENDERERS --- */
+function renderLobby() {
+  const { players } = state.room;
+  
+  const teamA = players.filter(p => p.team === "A");
+  const teamB = players.filter(p => p.team === "B");
+  
+  el.teamASlots.innerHTML = renderSlots(teamA);
+  el.teamBSlots.innerHTML = renderSlots(teamB);
+  
+  if (players.length < 4) {
+    el.lobbyStatusMsg.textContent = `WAITING FOR PLAYERS (${players.length}/4)...`;
   } else {
-    elements.lastBall.classList.add("hidden");
+    el.lobbyStatusMsg.textContent = "MATCH STARTING...";
   }
-
-  elements.restartButton.classList.toggle("hidden", room.status !== "finished");
 }
 
-function renderToss(room) {
-  const showToss = room.status === "toss";
-  const isCallingCaptain = room.toss?.status === "call" && room.captains?.[room.toss.callingTeam] === state.playerId;
-  const isWinningCaptain =
-    room.toss?.status === "decision" && room.captains?.[room.toss.winnerTeam] === state.playerId;
-  elements.tossPanel.classList.toggle("hidden", !showToss);
-  elements.tossCallActions.classList.toggle("hidden", !isCallingCaptain);
-  elements.tossDecisionActions.classList.toggle("hidden", !isWinningCaptain);
-  elements.runPad.classList.toggle("hidden", room.status === "toss");
-
-  if (!showToss) return;
-
-  if (room.toss?.status === "decision") {
-    elements.coinFace.textContent = room.toss.result === "Heads" ? "H" : "T";
-    elements.tossTitle.textContent = `${room.toss.result}: Team ${room.toss.winnerTeam} won the toss`;
-    elements.tossHelp.textContent = isWinningCaptain
-      ? "Choose whether your team will bat or bowl."
-      : `Waiting for Team ${room.toss.winnerTeam} captain to choose bat or bowl.`;
-
-    if (room.toss.flippedAt && room.toss.flippedAt !== state.lastTossFlip) {
-      state.lastTossFlip = room.toss.flippedAt;
-      elements.coin.classList.remove("coin-flip");
-      window.requestAnimationFrame(() => elements.coin.classList.add("coin-flip"));
-    }
-    return;
-  }
-
-  elements.coinFace.textContent = "?";
-  elements.tossTitle.textContent = isCallingCaptain
-    ? "Call the toss"
-    : `Waiting for Team ${room.toss?.callingTeam || "B"} captain`;
-  elements.tossHelp.textContent = isCallingCaptain
-    ? "Choose heads or tails. The coin flips right after your call."
-    : `Team ${room.toss?.callingTeam || "B"} captain must call heads or tails.`;
-}
-
-function renderLog(room) {
-  elements.matchLog.innerHTML = room.log.map((entry) => `<li>${escapeHtml(entry)}</li>`).join("");
-}
-
-function getRole(playerId) {
-  const room = state.room;
-  if (room?.status === "toss") return "toss";
-  if (!room || room.status !== "playing") return "waiting";
-  if (room.activeBatterId === playerId) return "batter";
-  if (room.activeBowlerId === playerId) return "bowler";
-  const player = room.players.find((candidate) => candidate.id === playerId);
-  if (player && player.team === room.battingTeam && room.score[player.team].outPlayerIds.includes(playerId)) {
-    return "out";
-  }
-  return "fielder";
-}
-
-function getRoleLabel(player) {
-  const you = player.id === state.playerId ? "You" : "";
-  const role = getRole(player.id);
-  if (state.room.status !== "playing") return you || "Waiting";
-  return you ? `You, ${roleLabel(role).toLowerCase()}` : roleLabel(role);
-}
-
-function roleLabel(role) {
-  const labels = {
-    batter: "Active batter",
-    bowler: "Active bowler",
-    fielder: "Teammate",
-    out: "Out",
-    toss: "Toss time",
-    waiting: "Waiting"
-  };
-
-  return labels[role] || "Waiting";
-}
-
-function getRoleHelp(room, role, hasChosen) {
-  if (room.status === "waiting") {
-    const remaining = 4 - room.players.length;
-    return `Need ${remaining} more player${remaining === 1 ? "" : "s"}.`;
-  }
-  if (room.status === "toss") {
-    if (room.toss?.status === "call") {
-      return room.captains?.[room.toss.callingTeam] === state.playerId
-        ? "Call heads or tails."
-        : `Waiting for Team ${room.toss.callingTeam} captain to call.`;
-    }
-    if (room.toss?.status === "decision") {
-      return room.captains?.[room.toss.winnerTeam] === state.playerId
-        ? "Choose bat or bowl."
-        : `Waiting for Team ${room.toss.winnerTeam} captain to choose.`;
+function renderSlots(teamPlayers) {
+  let html = "";
+  for (let i = 0; i < 2; i++) {
+    const p = teamPlayers[i];
+    if (p) {
+      html += `<div class="player-slot">
+                 <div class="status-badge">CONNECTED</div>
+                 <div class="avatar"></div>
+                 <div class="name">${p.name}</div>
+               </div>`;
+    } else {
+      html += `<div class="player-slot empty">WAITING FOR PLAYER...</div>`;
     }
   }
-  if (room.status === "finished") {
-    return room.winner === "Tie" ? "The match is tied." : `Team ${room.winner} won the match.`;
-  }
-  if (hasChosen) return "Choice locked. Waiting for the other side.";
-  if (role === "out") return "You are out for this innings. Your teammate continues batting.";
-  if (role === "batter") return "Pick the run you want to score.";
-  if (role === "bowler") return "Guess the batter's number to take a wicket.";
-  return "Watch this ball. Your turn can come after strike, wicket, or over changes.";
+  return html;
 }
 
-function getMatchStatus(room) {
-  if (room.status === "waiting") return `Waiting for 4 players. ${room.players.length}/4 joined.`;
-  if (room.status === "toss") {
-    if (room.toss?.status === "decision") return `Team ${room.toss.winnerTeam} won the toss. Decision pending.`;
-    return `All players joined. Team ${room.toss?.callingTeam || "B"} captain to call.`;
+/* --- TOSS LOGIC --- */
+function renderToss() {
+  const { toss } = state.room;
+  el.tossOverlay.classList.remove("hidden");
+  
+  const isCalling = toss.status === "calling";
+  const isDecision = toss.status === "decision";
+  
+  // Find who acts
+  const captainA = state.room.players.find(p => p.team === "A");
+  const isCaptain = state.playerId === captainA.id;
+  const isWinningCaptain = toss.winnerId === state.playerId;
+  
+  el.tossCallActions.classList.add("hidden");
+  el.tossChoiceActions.classList.add("hidden");
+  
+  if (isCalling) {
+    el.tossCoinAnim.classList.remove("flipping", "to-tails");
+    if (isCaptain) {
+      el.tossStatusText.textContent = "YOUR CALL. HEADS OR TAILS?";
+      el.tossCallActions.classList.remove("hidden");
+    } else {
+      el.tossStatusText.textContent = "WAITING FOR CAPTAIN TO CALL TOSS...";
+    }
+  } else if (isDecision) {
+    if (state.lastTossFlip !== toss.result) {
+      state.lastTossFlip = toss.result;
+      el.tossStatusText.textContent = "FLIPPING COIN...";
+      el.tossCoinAnim.classList.add("flipping");
+      if (toss.result === "tails") el.tossCoinAnim.classList.add("to-tails");
+      
+      setTimeout(() => {
+        el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${toss.winnerId === state.playerId ? 'YOU' : 'THEY'} WON THE TOSS.`;
+        if (isWinningCaptain) {
+          el.tossChoiceActions.classList.remove("hidden");
+        }
+      }, 3000); // 3 seconds animation
+    } else {
+      el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${toss.winnerId === state.playerId ? 'YOU' : 'THEY'} WON THE TOSS.`;
+      if (isWinningCaptain) {
+        el.tossChoiceActions.classList.remove("hidden");
+      } else {
+        el.tossStatusText.innerHTML += "<br>WAITING FOR DECISION...";
+      }
+    }
   }
-  if (room.status === "finished") return room.winner === "Tie" ? "Match tied." : `Team ${room.winner} wins.`;
+}
 
+el.tossCallActions.addEventListener("click", (e) => {
+  if (e.target.tagName === "BUTTON") {
+    postJson(`/api/rooms/${state.roomCode}/toss/call`, { call: e.target.dataset.call });
+  }
+});
+
+el.tossChoiceActions.addEventListener("click", (e) => {
+  if (e.target.tagName === "BUTTON") {
+    postJson(`/api/rooms/${state.roomCode}/toss/decision`, { decision: e.target.dataset.choice });
+  }
+});
+
+/* --- MATCH LOGIC --- */
+function renderMatch() {
+  el.tossOverlay.classList.add("hidden");
+  el.navMatchTab.classList.remove("hidden");
+  switchTab("matchView");
+  
+  const r = state.room;
+  const battingTeam = getBattingTeam(r);
+  
+  // Update Scores
+  const sA = r.score["A"];
+  const sB = r.score["B"];
+  
+  el.scoreA.innerHTML = `${sA.runs} <span>/ ${sA.wickets}</span>`;
+  el.scoreB.innerHTML = `${sB.runs} <span>/ ${sB.wickets}</span>`;
+  el.oversA.textContent = `OVERS: ${Math.floor(sA.balls / 6)}.${sA.balls % 6} / 4`;
+  el.oversB.textContent = `OVERS: ${Math.floor(sB.balls / 6)}.${sB.balls % 6} / 4`;
+  el.crrA.textContent = `CRR: ${sA.balls ? ((sA.runs / sA.balls) * 6).toFixed(1) : "0.0"}`;
+  el.crrB.textContent = `CRR: ${sB.balls ? ((sB.runs / sB.balls) * 6).toFixed(1) : "0.0"}`;
+  
+  el.teamAScoreBox.classList.toggle("inactive", battingTeam !== "A");
+  el.teamBScoreBox.classList.toggle("inactive", battingTeam !== "B");
+  el.teamALive.classList.toggle("hidden", battingTeam !== "A");
+  el.teamBLive.classList.toggle("hidden", battingTeam !== "B");
+  
+  if (r.innings === 1) {
+    const target = r.score[r.battingFirstTeam].runs + 1;
+    const chasing = battingTeam;
+    const sChase = r.score[chasing];
+    const remRuns = target - sChase.runs;
+    const remBalls = 24 - sChase.balls;
+    if (chasing === "A") { el.targetA.textContent = `TARGET: ${target} | NEED ${remRuns} FROM ${remBalls}`; el.targetA.classList.remove("hidden"); }
+    if (chasing === "B") { el.targetB.textContent = `TARGET: ${target} | NEED ${remRuns} FROM ${remBalls}`; el.targetB.classList.remove("hidden"); }
+  }
+
+  // Active Players
+  const myPlayer = r.players.find(p => p.id === state.playerId);
+  const myTeam = myPlayer ? myPlayer.team : "Spectator";
+  const amIBatting = battingTeam === myTeam;
+  
+  el.playerRoleBadge.textContent = amIBatting ? "BATTER" : "BOWLER";
+  
+  const batter = getActiveBatter(r, battingTeam);
+  const bowler = getActiveBowler(r, battingTeam === "A" ? "B" : "A");
+  
+  el.batterName.textContent = batter ? batter.name : "BATTER";
+  el.bowlerName.textContent = bowler ? bowler.name : "BOWLER";
+  
+  const myPendingChoice = r.pendingChoices[amIBatting ? "batter" : "bowler"];
+  
+  if (myPendingChoice) {
+    if (amIBatting) el.batterChoice.textContent = myPendingChoice;
+    else el.bowlerChoice.textContent = myPendingChoice;
+  } else {
+    el.batterChoice.textContent = "?";
+    el.bowlerChoice.textContent = "?";
+  }
+  
+  // Render log
+  el.matchLog.innerHTML = r.log.slice(0, 5).map(l => {
+    const isWicket = l.includes("Wicket");
+    const isSix = l.includes("6 run");
+    const cls = isWicket ? "WICKET" : isSix ? "SIX" : "RUN";
+    return `<div class="log-entry ${cls}"><div class="tag">${cls}!</div><div class="msg">${l}</div></div>`;
+  }).join("");
+}
+
+function handlePlayCall(run) {
+  postJson(`/api/rooms/${state.roomCode}/play`, { run });
+}
+
+/* --- RESULT LOGIC --- */
+function renderResult() {
+  el.navResultTab.classList.remove("hidden");
+  switchTab("resultView");
+  
+  const r = state.room;
+  el.winnerText.innerHTML = r.winner === "Tie" ? "MATCH<br>TIED" : `TEAM ${r.winner}<br>WINS`;
+  
+  const winTeamRuns = r.winner !== "Tie" ? r.score[r.winner].runs : 0;
+  const loseTeamRuns = r.winner !== "Tie" ? r.score[r.winner === "A" ? "B" : "A"].runs : 0;
+  el.victoryMargin.textContent = r.winner === "Tie" ? "TIE GAME" : `VICTORY BY ${winTeamRuns - loseTeamRuns} RUNS`;
+
+  let tableHtml = `<tr class="header-row"><th>BATTER</th><th>R</th><th>B</th><th>SR</th></tr>`;
+  
+  ["A", "B"].forEach(team => {
+    const isLoser = r.winner !== "Tie" && r.winner !== team;
+    tableHtml += `<tr class="team-row ${isLoser ? 'loser' : ''}"><th colspan="3">TEAM ${team} ${r.winner===team?'(WINNERS)':''}</th><td>${r.score[team].runs}/${r.score[team].wickets}</td></tr>`;
+    r.players.filter(p => p.team === team).forEach(p => {
+      const stats = p.stats;
+      const sr = stats.ballsFaced > 0 ? ((stats.runsScored / stats.ballsFaced)*100).toFixed(1) : "0.0";
+      tableHtml += `<tr class="player-row"><td>${p.name}</td><td class="runs">${stats.runsScored}</td><td>${stats.ballsFaced}</td><td>${sr}</td></tr>`;
+    });
+  });
+  
+  el.scorecardTable.innerHTML = tableHtml;
+}
+
+el.playAgainBtn.addEventListener("click", () => {
+  postJson(`/api/rooms/${state.roomCode}/restart`, {});
+});
+
+el.exitLobbyBtn.addEventListener("click", () => {
+  window.location.reload();
+});
+
+/* --- UTILS --- */
+function getBattingTeam(room) {
   const firstBattingTeam = room.battingFirstTeam || "A";
-  const target = room.innings === 1 ? ` Target: ${room.score[firstBattingTeam].runs + 1}.` : "";
-  return `Team ${room.battingTeam} batting.${target}`;
+  if (room.innings === 0) return firstBattingTeam;
+  return firstBattingTeam === "A" ? "B" : "A";
 }
 
-async function postJson(url, payload) {
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(payload)
-  });
-
-  return response.json();
+function getActiveBatter(room, team) {
+  const teammates = room.players.filter((p) => p.team === team);
+  const outIds = room.score[team].outPlayerIds;
+  const notOuts = teammates.filter(p => !outIds.includes(p.id));
+  const strikerIndex = room.score[team].strikerIndex;
+  return notOuts.find((p) => teammates.indexOf(p) === strikerIndex) || notOuts[0];
 }
 
-async function loadPublicRooms() {
-  const response = await fetch("/api/rooms");
-  const payload = await response.json();
-  if (!payload.ok) return;
-
-  renderPublicRooms(payload.rooms);
+function getActiveBowler(room, team) {
+  const teammates = room.players.filter((p) => p.team === team);
+  const battingTeam = team === "A" ? "B" : "A";
+  const currentOver = Math.floor(room.score[battingTeam].balls / 6);
+  return teammates[currentOver % Math.max(teammates.length, 1)];
 }
 
-function openLobbyEvents() {
-  const lobbyEvents = new EventSource("/events?roomCode=__lobby__");
-  lobbyEvents.onmessage = (event) => {
-    renderPublicRooms(JSON.parse(event.data));
-  };
-}
-
-function renderPublicRooms(rooms) {
-  if (!rooms.length) {
-    elements.publicRoomsList.innerHTML = '<p class="empty-text">No public rooms yet.</p>';
-    return;
-  }
-
-  elements.publicRoomsList.innerHTML = rooms
-    .map(
-      (room) => `
-        <article class="room-row">
-          <div>
-            <strong>${escapeHtml(room.code)}</strong>
-            <small>${escapeHtml(room.hostName)} · ${room.playerCount}/4 · ${escapeHtml(room.status)}</small>
-          </div>
-          <button type="button" data-join-room-code="${escapeHtml(room.code)}">Join</button>
-        </article>
-      `
-    )
-    .join("");
-}
-
-function renderShareLink(room) {
-  const link = createAbsoluteJoinUrl(room.joinUrl);
-  elements.shareLink.textContent = link;
-}
-
-function createAbsoluteJoinUrl(path) {
-  return `${window.location.origin}${path}`;
-}
-
-function setupJoinLink() {
-  const joinMatch = window.location.pathname.match(/^\/join\/([A-Z0-9]{6})$/i);
-  if (!joinMatch) return;
-
-  elements.roomCode.value = joinMatch[1].toUpperCase();
-  elements.notice.textContent = `Joining room ${elements.roomCode.value}. Enter your name and press Join by code.`;
-}
-
-function leaveRoom(message) {
-  state.events?.close();
-  state.playerId = "";
-  state.roomCode = "";
-  state.room = null;
-  state.events = null;
-  state.lastTossFlip = null;
-
-  elements.matchView.classList.add("hidden");
-  elements.joinForm.classList.remove("hidden");
-  elements.roomLabel.textContent = "No room";
-  elements.joinError.textContent = message;
-  elements.playError.textContent = "";
-}
-
-function escapeHtml(value) {
-  return String(value).replace(/[&<>"']/g, (character) => {
-    const entities = {
-      "&": "&amp;",
-      "<": "&lt;",
-      ">": "&gt;",
-      '"': "&quot;",
-      "'": "&#039;"
-    };
-
-    return entities[character];
+function loadPublicRooms() {
+  fetch("/api/rooms").then(r=>r.json()).then(data => {
+    el.publicRoomsList.innerHTML = data.rooms.map(r => 
+      `<div style="display:flex; justify-content:space-between; background: var(--bg-darker); padding: 10px; border: 2px solid var(--border-color);">
+        <span style="font-family: var(--font-heading); font-style: italic; font-size: 1.5rem;">${r.hostName}'s Room</span>
+        <button class="brutalist-btn" onclick="joinRoom('${r.code}')">JOIN</button>
+      </div>`
+    ).join("") || "<span style='color: var(--text-muted)'>No public rooms right now.</span>";
   });
 }
+
+window.addEventListener('load', checkAuth);

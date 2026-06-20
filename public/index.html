@@ -3,207 +3,293 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DMPL</title>
-    <link rel="stylesheet" href="/styles.css?v=20260620-captain-toss" />
+    <title>DMPL - Cricket Strike</title>
+    <link rel="stylesheet" href="/styles.css?v=20260620-brutal" />
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body>
-    <main class="app-shell">
-      <section class="score-band">
-        <div>
-          <p class="eyebrow">DMPL</p>
-          <h1>2v2 Hand Cricket</h1>
-          <p class="lede">Four overs. Two wickets. Guess, bluff, and chase the target.</p>
-        </div>
-        <div class="room-chip">
-          <span aria-hidden="true">#</span>
-          <strong id="roomLabel">No room</strong>
-        </div>
-      </section>
 
-      <section class="login-panel" id="loginView">
-        <div class="panel-content">
-          <h2>Sign In</h2>
-          <p>Sign in with your Google account to play DMPL and track your stats.</p>
-          <div id="googleSignInContainer" class="google-btn-container"></div>
-        </div>
-      </section>
+    <!-- HOMEPAGE / LOGIN VIEW -->
+    <section class="fullscreen-view view" id="loginView">
+      <div class="brand-giant">
+        <h1>CRICKET STRIKE</h1>
+        <p>HAND CRICKET. REIMAGINED.</p>
+      </div>
+      <div class="login-box">
+        <div id="googleSignInContainer" style="display: flex; justify-content: center;"></div>
+        <!-- <button class="brutalist-btn primary" id="googleMockBtn">LOGIN WITH GOOGLE</button> -->
+        <div class="divider">OR</div>
+        <button class="brutalist-btn" id="guestPlayBtn">GUEST PLAY</button>
+      </div>
+      <div class="mini-stats">
+        <div class="runs">6</div>
+        <div class="boundary">4</div>
+        <div class="wicket">W</div>
+      </div>
+    </section>
 
-      <section class="profile-setup-panel hidden" id="profileSetupView">
-        <div class="panel-content">
-          <h2>Create Profile</h2>
-          <p>Choose a display name for your matches.</p>
-          <form id="profileSetupForm">
-            <label>
-              Display Name
-              <input id="profileNameInput" maxlength="24" placeholder="e.g. MS Dhoni" required />
-            </label>
-            <button type="submit">Save Profile</button>
-            <p class="error-text" id="profileSetupError"></p>
-          </form>
-        </div>
-      </section>
+    <!-- PROFILE SETUP VIEW -->
+    <section class="fullscreen-view view hidden" id="profileSetupView">
+      <div class="brand-giant">
+        <h1>CALLSIGN</h1>
+      </div>
+      <div class="login-box">
+        <form id="profileSetupForm">
+          <input type="text" id="profileNameInput" maxlength="24" placeholder="ENTER DISPLAY NAME" required />
+          <button type="submit" class="brutalist-btn primary">SAVE & PLAY</button>
+          <p class="error-text" id="profileSetupError"></p>
+        </form>
+      </div>
+    </section>
 
-      <section class="dashboard-panel hidden" id="dashboardView">
-        <div class="dashboard-header">
-          <h2>Welcome, <span id="dashboardUserName">Player</span></h2>
-          <div class="header-actions">
-            <button class="secondary-action" type="button" id="viewProfileButton">My Profile & Stats</button>
-            <button class="secondary-action" type="button" id="logoutButton">Sign Out</button>
+    <!-- MAIN APP SHELL (SIDEBAR + CONTENT) -->
+    <main class="app-shell hidden" id="appShell">
+      
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div class="sidebar-brand">
+          <h1>CRICKET<br>STRIKE</h1>
+        </div>
+        
+        <ul class="nav-menu">
+          <li data-target="dashboardView" class="active">HOME / STATS</li>
+          <li data-target="lobbyView">LOBBY</li>
+          <li data-target="matchView" id="navMatchTab" class="hidden">ARENA (LIVE)</li>
+          <li data-target="resultView" id="navResultTab" class="hidden">SCOREBOARD</li>
+        </ul>
+
+        <div class="sidebar-profile">
+          <div class="avatar"></div>
+          <div class="info">
+            <span class="name" id="sidebarUserName">PLAYER</span>
+            <span class="rank">RANK: PRO</span>
           </div>
         </div>
+      </aside>
 
-        <div class="dashboard-layout">
-          <div class="join-panel">
-            <div class="create-actions">
-              <button type="button" data-create-room="public">Create public room</button>
-              <button class="secondary-create" type="button" data-create-room="private">Create private room</button>
+      <!-- CONTENT AREA -->
+      <section class="main-content">
+        
+        <!-- DASHBOARD / STATS VIEW -->
+        <div class="view" id="dashboardView">
+          <h2 class="stats-header">PLAYER STATS</h2>
+          
+          <div class="stats-summary">
+            <div class="summary-card">
+              <span class="label">Total Matches <span>🎮</span></span>
+              <span class="value" id="statMatches">0</span>
             </div>
-            <form class="join-code-form" id="joinCodeForm">
-              <label>
-                Room code
-                <input id="roomCode" maxlength="6" placeholder="A1B2C3" required />
-              </label>
-              <button type="submit">Join by code</button>
-            </form>
-            <div class="public-rooms">
-              <div class="panel-heading">
-                <h2>Public rooms</h2>
-                <button class="text-button" id="refreshRoomsButton" type="button">Refresh</button>
-              </div>
-              <div id="publicRoomsList" class="room-list"></div>
+            <div class="summary-card">
+              <span class="label">Win Rate <span>📈</span></span>
+              <span class="value" id="statWinRate">0%</span>
             </div>
-            <p class="notice-text" id="notice"></p>
-            <p class="error-text" id="joinError"></p>
+            <div class="summary-card">
+              <span class="label">Total Runs <span>🏏</span></span>
+              <span class="value" id="statRuns">0</span>
+            </div>
+            <div class="summary-card highlight">
+              <span class="label">Wickets <span>🎯</span></span>
+              <span class="value" id="statWickets">0</span>
+            </div>
           </div>
-        </div>
-      </section>
-      <section class="profile-panel hidden" id="profileView">
-        <div class="panel-content profile-content">
-          <div class="profile-header">
-            <button class="text-button" type="button" id="backToDashboardButton">← Back to Lobby</button>
-            <h2 id="profileUserName">Player Profile</h2>
+
+          <div class="stats-summary">
+            <div class="summary-card">
+              <span class="label">Highest Score</span>
+              <span class="value" id="statHighestScore">0</span>
+            </div>
+            <div class="summary-card">
+              <span class="label">Batting Avg</span>
+              <span class="value" id="statAverage">0.0</span>
+            </div>
+            <div class="summary-card">
+              <span class="label">Strike Rate</span>
+              <span class="value" id="statStrikeRate">0.0</span>
+            </div>
+            <div class="summary-card">
+              <span class="label">Economy</span>
+              <span class="value" id="statEconomy">0.0</span>
+            </div>
           </div>
           
-          <div class="stats-section">
-            <h3>Career Statistics</h3>
-            <div class="stats-grid">
-              <div class="stat-card">
-                <p class="stat-label">Matches</p>
-                <p class="stat-value" id="statMatches">0</p>
+          <button class="brutalist-btn" id="logoutButton" style="width: auto;">LOGOUT</button>
+        </div>
+
+        <!-- LOBBY VIEW -->
+        <div class="view hidden" id="lobbyView">
+          <div class="view-header">
+            <h2>LOBBY</h2>
+            <div class="subtitle">2V2 CASUAL</div>
+          </div>
+
+          <!-- Room Controls -->
+          <div id="roomControls" style="margin-bottom: 40px;">
+            <div style="display: flex; gap: 20px;">
+              <button class="brutalist-btn primary" id="btnCreatePublic">CREATE PUBLIC ROOM</button>
+              <button class="brutalist-btn" id="btnCreatePrivate">CREATE PRIVATE ROOM</button>
+            </div>
+            <form id="joinCodeForm" class="join-code-form" style="max-width: 400px;">
+              <input type="text" id="roomCodeInput" maxlength="6" placeholder="ENTER ROOM CODE" required />
+              <button type="submit" class="brutalist-btn primary">JOIN</button>
+            </form>
+            <p class="error-text" id="joinError"></p>
+            <p class="notice-text" id="noticeText"></p>
+            
+            <div style="margin-top: 30px;">
+              <h3 style="margin-bottom: 15px; color: var(--text-muted); font-size: 1.5rem;">PUBLIC ROOMS</h3>
+              <div id="publicRoomsList" style="display:flex; flex-direction: column; gap: 10px;"></div>
+            </div>
+          </div>
+
+          <!-- Active Room State -->
+          <div id="activeRoomContainer" class="hidden">
+            <div style="margin-bottom: 20px; font-size: 1.5rem;">
+              ROOM CODE: <span id="lobbyRoomCode" style="color: var(--neon-green)"></span>
+            </div>
+            <div class="lobby-grid">
+              <!-- Team A -->
+              <div class="team-box">
+                <div class="team-box-header">
+                  <h3>TEAM A</h3>
+                  <span class="team-badge">HOME</span>
+                </div>
+                <div id="teamASlots">
+                  <div class="player-slot empty">WAITING FOR PLAYER...</div>
+                  <div class="player-slot empty">WAITING FOR PLAYER...</div>
+                </div>
               </div>
-              <div class="stat-card">
-                <p class="stat-label">Runs</p>
-                <p class="stat-value" id="statRuns">0</p>
+
+              <!-- Team B -->
+              <div class="team-box">
+                <div class="team-box-header">
+                  <h3>TEAM B</h3>
+                  <span class="team-badge">AWAY</span>
+                </div>
+                <div id="teamBSlots">
+                  <div class="player-slot empty">WAITING FOR PLAYER...</div>
+                  <div class="player-slot empty">WAITING FOR PLAYER...</div>
+                </div>
               </div>
-              <div class="stat-card">
-                <p class="stat-label">Highest Score</p>
-                <p class="stat-value" id="statHighestScore">0</p>
-              </div>
-              <div class="stat-card">
-                <p class="stat-label">Average</p>
-                <p class="stat-value" id="statAverage">0.0</p>
-              </div>
-              <div class="stat-card">
-                <p class="stat-label">Strike Rate</p>
-                <p class="stat-value" id="statStrikeRate">0.0</p>
-              </div>
-              <div class="stat-card">
-                <p class="stat-label">Wickets</p>
-                <p class="stat-value" id="statWickets">0</p>
-              </div>
-              <div class="stat-card">
-                <p class="stat-label">Economy</p>
-                <p class="stat-value" id="statEconomy">0.0</p>
-              </div>
-              <div class="stat-card">
-                <p class="stat-label">Best Bowling</p>
-                <p class="stat-value" id="statBestBowling">0/0</p>
-              </div>
+            </div>
+
+            <div class="lobby-actions">
+              <button id="startMatchBtn" class="hidden" disabled>START MATCH</button>
+              <p id="lobbyStatusMsg" style="font-size: 1.5rem; color: var(--neon-green); margin-top: 20px;"></p>
             </div>
           </div>
         </div>
-      </section>
 
-      <div class="match-grid hidden" id="matchView">
-        <section class="scoreboard">
-          <div class="teams">
-            <article class="team-card" id="teamA">
-              <span>Team A</span>
-              <strong id="scoreA">0/0</strong>
-              <small id="oversA">0.0 overs</small>
-            </article>
-            <article class="team-card" id="teamB">
-              <span>Team B</span>
-              <strong id="scoreB">0/0</strong>
-              <small id="oversB">0.0 overs</small>
-            </article>
-          </div>
+        <!-- MATCH SCREEN -->
+        <div class="view match-layout hidden" id="matchView">
+          <div class="match-top">
+            
+            <!-- Scoreboard Sidebar -->
+            <div class="score-panel">
+              <div class="score-box" id="teamAScoreBox">
+                <span class="live-badge hidden" id="teamALive">LIVE</span>
+                <h3>TEAM ALPHA</h3>
+                <div class="score-main" id="scoreA">0 <span>/ 0</span></div>
+                <div class="score-details">
+                  <span id="oversA">OVERS: 0.0 / 4</span>
+                  <span id="crrA">CRR: 0.0</span>
+                </div>
+                <div class="target-info hidden" id="targetA"></div>
+              </div>
 
-          <div class="status-strip" id="matchStatus">Join a room to start.</div>
-          <div class="share-strip" id="shareStrip">
-            <span id="shareLink"></span>
-            <button class="text-button" id="copyLinkButton" type="button">Copy link</button>
-          </div>
-
-          <div class="players">
-            <div>
-              <h2>Team A</h2>
-              <div id="teamAPlayers"></div>
-            </div>
-            <div>
-              <h2>Team B</h2>
-              <div id="teamBPlayers"></div>
-            </div>
-          </div>
-        </section>
-
-        <section class="play-panel">
-          <div class="role-block">
-            <p class="eyebrow">Your role</p>
-            <h2 id="roleTitle">Waiting</h2>
-            <p id="roleHelp">Need four players to begin.</p>
-          </div>
-
-          <div class="toss-panel hidden" id="tossPanel">
-            <div class="coin-stage">
-              <div class="coin" id="coin">
-                <span id="coinFace">?</span>
+              <div class="score-box inactive" id="teamBScoreBox">
+                <span class="live-badge hidden" id="teamBLive">LIVE</span>
+                <h3>TEAM BETA</h3>
+                <div class="score-main" id="scoreB">0 <span>/ 0</span></div>
+                <div class="score-details">
+                  <span id="oversB">OVERS: 0.0 / 4</span>
+                  <span id="crrB">CRR: 0.0</span>
+                </div>
+                <div class="target-info hidden" id="targetB"></div>
               </div>
             </div>
-            <div class="toss-copy">
-              <p class="eyebrow">Toss</p>
-              <h2 id="tossTitle">Ready for toss</h2>
-              <p id="tossHelp">Captains handle the toss once all four players are in.</p>
+
+            <!-- VS Combat Area -->
+            <div class="vs-panel">
+              <div class="player-combat">
+                <h4 id="bowlerName">BOWLER</h4>
+                <div class="choice-box" id="bowlerChoice">?</div>
+              </div>
+              <div class="vs-text">VS</div>
+              <div class="player-combat">
+                <h4 id="batterName">BATSMAN</h4>
+                <div class="choice-box" id="batterChoice">?</div>
+              </div>
             </div>
-            <div class="toss-actions hidden" id="tossCallActions">
-              <button type="button" data-toss-call="Heads">Heads</button>
-              <button type="button" data-toss-call="Tails">Tails</button>
-            </div>
-            <div class="toss-actions hidden" id="tossDecisionActions">
-              <button type="button" data-toss-decision="bat">Bat</button>
-              <button type="button" data-toss-decision="bowl">Bowl</button>
-            </div>
+
           </div>
 
-          <div class="run-pad" id="runPad" aria-label="Run choices"></div>
+          <!-- Bottom Action Area -->
+          <div class="match-bottom">
+            <div class="keypad-header">
+              <h3>YOUR MOVE</h3>
+              <span class="role-badge" id="playerRoleBadge">BATTER</span>
+            </div>
+            
+            <div class="keypad" id="runPad">
+              <!-- Buttons injected by JS -->
+            </div>
 
-          <div class="last-ball hidden" id="lastBall">
-            <span>Last ball</span>
-            <strong id="lastBallText"></strong>
+            <div class="match-log-strip" id="matchLog">
+              <!-- Log injected by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULT / SCORECARD VIEW -->
+        <div class="view result-view hidden" id="resultView">
+          <div class="result-header">
+            <span class="tag">FINAL RESULT</span>
+            <h1 id="winnerText">TEAM A<br>WINS</h1>
+            <div class="victory-badge">🏆 <span id="victoryMargin">VICTORY BY 24 RUNS</span></div>
           </div>
 
-          <button class="secondary-action hidden" id="restartButton" type="button">Restart</button>
-          <p class="error-text" id="playError"></p>
-        </section>
+          <div class="scorecard-container">
+            <div class="scorecard-header">
+              <h2>SCORECARD</h2>
+              <span class="format">2V2 FORMAT</span>
+            </div>
+            
+            <table class="scorecard-table" id="scorecardTable">
+              <!-- Generated by JS -->
+            </table>
 
-        <section class="log-panel">
-          <h2>Match log</h2>
-          <ol id="matchLog"></ol>
-        </section>
-      </div>
+            <div class="result-actions">
+              <button class="play-again" id="playAgainBtn">↺ PLAY AGAIN</button>
+              <button class="exit" id="exitLobbyBtn">EXIT ➔</button>
+            </div>
+          </div>
+        </div>
+
+      </section>
     </main>
 
-    <script src="/app.js?v=20260620-captain-toss"></script>
+    <!-- TOSS OVERLAY MODAL -->
+    <div class="toss-overlay hidden" id="tossOverlay">
+      <div class="toss-coin-container">
+        <div class="toss-coin" id="tossCoinAnim">
+          <div class="face heads">H</div>
+          <div class="face tails">T</div>
+        </div>
+      </div>
+      <div class="toss-status" id="tossStatusText">FLIPPING COIN...</div>
+      
+      <!-- Captain Choices -->
+      <div class="toss-actions hidden" id="tossChoiceActions">
+        <button class="brutalist-btn primary" data-choice="bat">BAT</button>
+        <button class="brutalist-btn" data-choice="bowl">BOWL</button>
+      </div>
+      <!-- Toss Call Actions -->
+      <div class="toss-actions hidden" id="tossCallActions">
+        <button class="brutalist-btn primary" data-call="heads">HEADS</button>
+        <button class="brutalist-btn" data-call="tails">TAILS</button>
+      </div>
+    </div>
+
+    <script src="/app.js?v=20260620-brutal"></script>
   </body>
 </html>
