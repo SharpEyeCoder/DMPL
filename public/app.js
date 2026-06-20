@@ -266,8 +266,8 @@ function openLobbyEvents() {
   const src = new EventSource("/events?roomCode=__lobby__");
   src.onmessage = (event) => {
     const data = JSON.parse(event.data);
-    if (data.type === "rooms") {
-      el.publicRoomsList.innerHTML = data.rooms.map(r => 
+    if (Array.isArray(data)) {
+      el.publicRoomsList.innerHTML = data.map(r => 
         `<div style="display:flex; justify-content:space-between; background: var(--bg-darker); padding: 10px; border: 2px solid var(--border-color);">
           <span style="font-family: var(--font-heading); font-style: italic; font-size: 1.5rem;">${r.hostName}'s Room</span>
           <button class="brutalist-btn" onclick="joinRoom('${r.code}')">JOIN</button>
