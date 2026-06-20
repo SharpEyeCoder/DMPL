@@ -341,9 +341,10 @@ function renderToss() {
   const isDecision = toss.status === "decision";
   
   // Find who acts
-  const captainA = state.room.players.find(p => p.team === "A");
-  const isCaptain = state.playerId === captainA.id;
-  const isWinningCaptain = toss.winnerId === state.playerId;
+  const callingCaptain = state.room.players.find(p => p.team === toss.callingTeam);
+  const isCaptain = callingCaptain ? state.playerId === callingCaptain.id : false;
+  const isWinningCaptain = toss.winnerId ? toss.winnerId === state.playerId : 
+                            (toss.winnerTeam ? state.room.players.find(p => p.team === toss.winnerTeam)?.id === state.playerId : false);
   
   el.tossCallActions.classList.add("hidden");
   el.tossChoiceActions.classList.add("hidden");
