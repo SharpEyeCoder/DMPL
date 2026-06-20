@@ -12,9 +12,10 @@ Rules in this first version:
 - The first player in a room becomes the host.
 - The host can kick players from the room.
 - A kicked player is returned to the join screen with a notification.
-- When four players join, the host flips a coin for the toss.
-- Heads means Team A wins the toss, tails means Team B wins.
-- The toss-winning team bats first.
+- When four players join, the first player from each team becomes captain.
+- Team B captain calls heads or tails.
+- The coin flips after the call.
+- The winning captain chooses whether to bat or bowl.
 - Each innings is 4 overs or 2 wickets.
 - The active batter chooses `1`, `2`, `3`, `4`, or `6`.
 - The active bowler secretly chooses one of the same numbers.

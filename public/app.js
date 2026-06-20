@@ -34,7 +34,8 @@ const elements = {
   coinFace: document.querySelector("#coinFace"),
   tossTitle: document.querySelector("#tossTitle"),
   tossHelp: document.querySelector("#tossHelp"),
-  flipTossButton: document.querySelector("#flipTossButton"),
+  tossCallActions: document.querySelector("#tossCallActions"),
+  tossDecisionActions: document.querySelector("#tossDecisionActions"),
   lastBall: document.querySelector("#lastBall"),
   lastBallText: document.querySelector("#lastBallText"),
   restartButton: document.querySelector("#restartButton"),
@@ -80,22 +81,52 @@ elements.copyLinkButton.addEventListener("click", async () => {
   elements.playError.textContent = "Room link copied.";
 });
 
-elements.flipTossButton.addEventListener("click", async () => {
-  if (!state.room) return;
+document.addEventListener("click", async (event) => {
+  const callButton = event.target.closest("button[data-toss-call]");
+  if (callButton) {
+    await submitTossCall(callButton.dataset.tossCall);
+    return;
+  }
 
+  const decisionButton = event.target.closest("button[data-toss-decision]");
+  if (decisionButton) {
+    await submitTossDecision(decisionButton.dataset.tossDecision);
+  }
+});
+
+async function submitTossCall(call) {
+  if (!state.room) return;
   elements.playError.textContent = "";
   elements.coin.classList.remove("coin-flip");
   window.requestAnimationFrame(() => elements.coin.classList.add("coin-flip"));
 
   const response = await postJson("/api/toss", {
     roomCode: state.roomCode,
-    hostPlayerId: state.playerId
+    playerId: state.playerId,
+    action: "call",
+    call
   });
 
   if (!response.ok) {
     elements.playError.textContent = response.error || "Toss failed.";
   }
-});
+}
+
+async function submitTossDecision(decision) {
+  if (!state.room) return;
+  elements.playError.textContent = "";
+
+  const response = await postJson("/api/toss", {
+    roomCode: state.roomCode,
+    playerId: state.playerId,
+    action: "decision",
+    decision
+  });
+
+  if (!response.ok) {
+    elements.playError.textContent = response.error || "Decision failed.";
+  }
+}
 
 async function createRoom(visibility) {
   elements.joinError.textContent = "";
@@ -232,6 +263,7 @@ function renderPlayers(team, container) {
           <span>
             ${escapeHtml(player.name)}
             ${player.id === state.room.hostId ? '<b class="host-badge">Host</b>' : ""}
+            ${player.id === state.room.captains?.[team] ? '<b class="captain-badge">Captain</b>' : ""}
           </span>
           <div class="player-actions">
             <small>${escapeHtml(getRoleLabel(player))}</small>
@@ -270,18 +302,23 @@ function renderPlayPanel(room) {
 }
 
 function renderToss(room) {
-  const showToss = room.status === "toss" || room.toss?.status === "done";
-  const isHost = room.hostId === state.playerId;
+  const showToss = room.status === "toss" || room.toss?.status === "decision";
+  const isCallingCaptain = room.toss?.status === "call" && room.captains?.[room.toss.callingTeam] === state.playerId;
+  const isWinningCaptain =
+    room.toss?.status === "decision" && room.captains?.[room.toss.winnerTeam] === state.playerId;
   elements.tossPanel.classList.toggle("hidden", !showToss);
-  elements.flipTossButton.classList.toggle("hidden", !(room.status === "toss" && isHost));
+  elements.tossCallActions.classList.toggle("hidden", !isCallingCaptain);
+  elements.tossDecisionActions.classList.toggle("hidden", !isWinningCaptain);
   elements.runPad.classList.toggle("hidden", room.status === "toss");
 
   if (!showToss) return;
 
-  if (room.toss?.status === "done") {
+  if (room.toss?.status === "decision") {
     elements.coinFace.textContent = room.toss.result === "Heads" ? "H" : "T";
-    elements.tossTitle.textContent = `${room.toss.result}: Team ${room.toss.winnerTeam} won`;
-    elements.tossHelp.textContent = `Team ${room.battingFirstTeam} bats first.`;
+    elements.tossTitle.textContent = `${room.toss.result}: Team ${room.toss.winnerTeam} won the toss`;
+    elements.tossHelp.textContent = isWinningCaptain
+      ? "Choose whether your team will bat or bowl."
+      : `Waiting for Team ${room.toss.winnerTeam} captain to choose bat or bowl.`;
 
     if (room.toss.flippedAt && room.toss.flippedAt !== state.lastTossFlip) {
       state.lastTossFlip = room.toss.flippedAt;
@@ -292,10 +329,12 @@ function renderToss(room) {
   }
 
   elements.coinFace.textContent = "?";
-  elements.tossTitle.textContent = isHost ? "Flip for batting" : "Waiting for host";
-  elements.tossHelp.textContent = isHost
-    ? "Heads gives Team A first batting. Tails gives Team B first batting."
-    : "The host will flip the coin to decide who bats first.";
+  elements.tossTitle.textContent = isCallingCaptain
+    ? "Call the toss"
+    : `Waiting for Team ${room.toss?.callingTeam || "B"} captain`;
+  elements.tossHelp.textContent = isCallingCaptain
+    ? "Choose heads or tails. The coin flips right after your call."
+    : `Team ${room.toss?.callingTeam || "B"} captain must call heads or tails.`;
 }
 
 function renderLog(room) {
@@ -341,7 +380,16 @@ function getRoleHelp(room, role, hasChosen) {
     return `Need ${remaining} more player${remaining === 1 ? "" : "s"}.`;
   }
   if (room.status === "toss") {
-    return room.hostId === state.playerId ? "Flip the coin to start the match." : "Waiting for the host to flip the coin.";
+    if (room.toss?.status === "call") {
+      return room.captains?.[room.toss.callingTeam] === state.playerId
+        ? "Call heads or tails."
+        : `Waiting for Team ${room.toss.callingTeam} captain to call.`;
+    }
+    if (room.toss?.status === "decision") {
+      return room.captains?.[room.toss.winnerTeam] === state.playerId
+        ? "Choose bat or bowl."
+        : `Waiting for Team ${room.toss.winnerTeam} captain to choose.`;
+    }
   }
   if (room.status === "finished") {
     return room.winner === "Tie" ? "The match is tied." : `Team ${room.winner} won the match.`;
@@ -355,7 +403,10 @@ function getRoleHelp(room, role, hasChosen) {
 
 function getMatchStatus(room) {
   if (room.status === "waiting") return `Waiting for 4 players. ${room.players.length}/4 joined.`;
-  if (room.status === "toss") return "All players joined. Toss pending.";
+  if (room.status === "toss") {
+    if (room.toss?.status === "decision") return `Team ${room.toss.winnerTeam} won the toss. Decision pending.`;
+    return `All players joined. Team ${room.toss?.callingTeam || "B"} captain to call.`;
+  }
   if (room.status === "finished") return room.winner === "Tie" ? "Match tied." : `Team ${room.winner} wins.`;
 
   const firstBattingTeam = room.battingFirstTeam || "A";

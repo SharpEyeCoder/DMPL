@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DMPL</title>
-    <link rel="stylesheet" href="/styles.css?v=20260620-toss" />
+    <link rel="stylesheet" href="/styles.css?v=20260620-captain-toss" />
   </head>
   <body>
     <main class="app-shell">
@@ -96,9 +96,16 @@
             <div class="toss-copy">
               <p class="eyebrow">Toss</p>
               <h2 id="tossTitle">Ready for toss</h2>
-              <p id="tossHelp">The host flips once all four players are in.</p>
+              <p id="tossHelp">Captains handle the toss once all four players are in.</p>
             </div>
-            <button class="secondary-action hidden" id="flipTossButton" type="button">Flip coin</button>
+            <div class="toss-actions hidden" id="tossCallActions">
+              <button type="button" data-toss-call="Heads">Heads</button>
+              <button type="button" data-toss-call="Tails">Tails</button>
+            </div>
+            <div class="toss-actions hidden" id="tossDecisionActions">
+              <button type="button" data-toss-decision="bat">Bat</button>
+              <button type="button" data-toss-decision="bowl">Bowl</button>
+            </div>
           </div>
 
           <div class="run-pad" id="runPad" aria-label="Run choices"></div>
@@ -119,6 +126,6 @@
       </div>
     </main>
 
-    <script src="/app.js?v=20260620-toss"></script>
+    <script src="/app.js?v=20260620-captain-toss"></script>
   </body>
 </html>
