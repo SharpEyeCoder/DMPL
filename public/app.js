@@ -13,10 +13,15 @@ const elements = {
   loginView: document.querySelector("#loginView"),
   profileSetupView: document.querySelector("#profileSetupView"),
   dashboardView: document.querySelector("#dashboardView"),
+  profileView: document.querySelector("#profileView"),
   profileSetupForm: document.querySelector("#profileSetupForm"),
   profileNameInput: document.querySelector("#profileNameInput"),
   profileSetupError: document.querySelector("#profileSetupError"),
   logoutButton: document.querySelector("#logoutButton"),
+  viewProfileButton: document.querySelector("#viewProfileButton"),
+  backToDashboardButton: document.querySelector("#backToDashboardButton"),
+  dashboardUserName: document.querySelector("#dashboardUserName"),
+  profileUserName: document.querySelector("#profileUserName"),
   statMatches: document.querySelector("#statMatches"),
   statRuns: document.querySelector("#statRuns"),
   statHighestScore: document.querySelector("#statHighestScore"),
@@ -85,6 +90,7 @@ function showView(viewElement) {
   elements.loginView.classList.add("hidden");
   elements.profileSetupView.classList.add("hidden");
   elements.dashboardView.classList.add("hidden");
+  elements.profileView.classList.add("hidden");
   elements.matchView.classList.add("hidden");
   if (viewElement) viewElement.classList.remove("hidden");
 }
@@ -135,11 +141,31 @@ elements.logoutButton.addEventListener("click", async () => {
   renderGoogleSignIn();
 });
 
+elements.viewProfileButton.addEventListener("click", () => {
+  showProfile();
+});
+
+elements.backToDashboardButton.addEventListener("click", () => {
+  showDashboard();
+});
+
 function showDashboard() {
   showView(elements.dashboardView);
+  const s = state.user;
+  elements.dashboardUserName.textContent = s.profile_name;
+  
+  setupJoinLink();
+  loadPublicRooms();
+  openLobbyEvents();
+}
+
+function showProfile() {
+  showView(elements.profileView);
+  
+  const s = state.user;
+  elements.profileUserName.textContent = s.profile_name;
   
   // Populate stats
-  const s = state.user;
   elements.statMatches.textContent = s.matches_played;
   elements.statRuns.textContent = s.runs_scored;
   elements.statHighestScore.textContent = s.highest_score;
@@ -149,10 +175,6 @@ function showDashboard() {
   elements.statWickets.textContent = s.wickets_taken;
   elements.statEconomy.textContent = s.balls_bowled > 0 ? ((s.runs_conceded / (s.balls_bowled / 6))).toFixed(1) : "0.0";
   elements.statBestBowling.textContent = `${s.best_bowling_wickets}/${s.best_bowling_runs}`;
-
-  setupJoinLink();
-  loadPublicRooms();
-  openLobbyEvents();
 }
 
 window.addEventListener('load', checkAuth);
