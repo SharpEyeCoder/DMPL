@@ -384,13 +384,13 @@ function renderToss() {
 
 el.tossCallActions.addEventListener("click", (e) => {
   if (e.target.tagName === "BUTTON") {
-    postJson(`/api/rooms/${state.roomCode}/toss/call`, { call: e.target.dataset.call });
+    postJson(`/api/toss`, { roomCode: state.roomCode, playerId: state.playerId, action: "call", call: e.target.dataset.call });
   }
 });
 
 el.tossChoiceActions.addEventListener("click", (e) => {
   if (e.target.tagName === "BUTTON") {
-    postJson(`/api/rooms/${state.roomCode}/toss/decision`, { decision: e.target.dataset.choice });
+    postJson(`/api/toss`, { roomCode: state.roomCode, playerId: state.playerId, action: "decision", decision: e.target.dataset.choice });
   }
 });
 
@@ -462,7 +462,7 @@ function renderMatch() {
 }
 
 function handlePlayCall(run) {
-  postJson(`/api/rooms/${state.roomCode}/play`, { run });
+  postJson(`/api/choice`, { roomCode: state.roomCode, playerId: state.playerId, run });
 }
 
 /* --- RESULT LOGIC --- */
@@ -493,7 +493,7 @@ function renderResult() {
 }
 
 el.playAgainBtn.addEventListener("click", () => {
-  postJson(`/api/rooms/${state.roomCode}/restart`, {});
+  postJson(`/api/restart`, { roomCode: state.roomCode });
 });
 
 el.exitLobbyBtn.addEventListener("click", () => {
