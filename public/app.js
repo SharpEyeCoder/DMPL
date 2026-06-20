@@ -1,4 +1,4 @@
-const RUN_OPTIONS = [1, 2, 3, 4, 5, 6]; // The design had 1-6 but wait, run pad in design has 1, 2, 3, 4, 5, 6. Let's add 5 just for UI completeness.
+const RUN_OPTIONS = [1, 2, 3, 4, 6]; // The design had 1-6 but wait, run pad in design has 1, 2, 3, 4, 5, 6. User requested removing 5.
 
 const state = {
   user: null,
@@ -472,6 +472,8 @@ function renderMatch() {
 }
 
 function handlePlayCall(run) {
+  // Optimistically disable buttons to prevent double-clicking and 403 errors
+  document.querySelectorAll(".key-btn").forEach(btn => btn.disabled = true);
   postJson(`/api/choice`, { roomCode: state.roomCode, playerId: state.playerId, run });
 }
 
