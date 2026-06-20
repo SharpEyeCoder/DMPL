@@ -67,6 +67,11 @@ const httpServer = createServer(async (request, response) => {
     return;
   }
 
+  if (request.method === "POST" && url.pathname === "/api/toss") {
+    await handleToss(request, response);
+    return;
+  }
+
   if (request.method === "POST" && url.pathname === "/api/kick") {
     await handleKick(request, response);
     return;
@@ -109,7 +114,7 @@ async function handleJoin(request, response) {
   room.log.unshift(`${name} joined ${normalizedRoomCode}.`);
 
   if (room.players.length === 4 && room.status === "waiting") {
-    startMatch(room);
+    prepareToss(room);
   }
 
   publishRoom(room);
@@ -181,9 +186,37 @@ async function handleRestart(request, response) {
     return;
   }
 
-  startMatch(room);
+  if (room.players.length === 4) {
+    prepareToss(room);
+  } else {
+    resetRoomToWaiting(room);
+  }
   publishRoom(room);
   sendJson(response, 200, { ok: true });
+}
+
+async function handleToss(request, response) {
+  const body = await readJsonBody(request);
+  const room = rooms.get(normalizeRoomCode(body.roomCode));
+
+  if (!room) {
+    sendJson(response, 404, { ok: false, error: "Room not found." });
+    return;
+  }
+
+  if (room.hostId !== body.hostPlayerId) {
+    sendJson(response, 403, { ok: false, error: "Only the host can flip the toss." });
+    return;
+  }
+
+  if (room.status !== "toss") {
+    sendJson(response, 400, { ok: false, error: "Toss is not available right now." });
+    return;
+  }
+
+  flipTossAndStart(room);
+  publishRoom(room);
+  sendJson(response, 200, { ok: true, room: serializeRoom(room) });
 }
 
 async function handleKick(request, response) {
@@ -227,6 +260,8 @@ function createRoom(visibility = "public") {
     hostId: null,
     players: [],
     status: "waiting",
+    toss: null,
+    battingFirstTeam: "A",
     innings: 0,
     score: createEmptyScores(),
     pendingChoices: {},
@@ -261,11 +296,7 @@ function removePlayer(room, playerId, logEntry) {
   rebalanceTeams(room);
 
   if (room.players.length < 4) {
-    room.status = "waiting";
-    room.innings = 0;
-    room.score = createEmptyScores();
-    room.lastBall = null;
-    room.winner = null;
+    resetRoomToWaiting(room);
   }
   publishRoomList();
 }
@@ -277,15 +308,58 @@ function rebalanceTeams(room) {
   }));
 }
 
-function startMatch(room) {
-  room.status = "playing";
+function prepareToss(room) {
+  room.status = "toss";
   room.innings = 0;
   room.score = createEmptyScores();
   room.pendingChoices = {};
   room.lastBall = null;
   room.winner = null;
-  room.log = ["Match started. Team A bats first."];
+  room.battingFirstTeam = "A";
+  room.toss = {
+    status: "ready",
+    winnerTeam: null,
+    result: null,
+    flippedAt: null
+  };
+  room.log = ["All players joined. Host can flip the toss."];
   publishRoomList();
+}
+
+function flipTossAndStart(room) {
+  const result = crypto.randomInt(2) === 0 ? "Heads" : "Tails";
+  const winnerTeam = result === "Heads" ? "A" : "B";
+  room.toss = {
+    status: "done",
+    winnerTeam,
+    result,
+    flippedAt: Date.now()
+  };
+  startMatch(room, winnerTeam);
+}
+
+function startMatch(room, battingFirstTeam = room.battingFirstTeam || "A") {
+  room.status = "playing";
+  room.innings = 0;
+  room.battingFirstTeam = battingFirstTeam;
+  room.score = createEmptyScores();
+  room.pendingChoices = {};
+  room.lastBall = null;
+  room.winner = null;
+  room.log.unshift(`Toss result: ${room.toss?.result}. Team ${battingFirstTeam} bats first.`);
+  room.log.unshift("Match started.");
+  publishRoomList();
+}
+
+function resetRoomToWaiting(room) {
+  room.status = "waiting";
+  room.innings = 0;
+  room.score = createEmptyScores();
+  room.pendingChoices = {};
+  room.lastBall = null;
+  room.winner = null;
+  room.battingFirstTeam = "A";
+  room.toss = null;
 }
 
 function createEmptyScores() {
@@ -354,21 +428,26 @@ function advanceMatch(room) {
   if (room.innings === 0) {
     room.innings = 1;
     room.pendingChoices = {};
-    room.log.unshift(`Innings break. Team B needs ${room.score.A.runs + 1} to win.`);
+    const firstBattingTeam = room.battingFirstTeam;
+    const chasingTeam = firstBattingTeam === "A" ? "B" : "A";
+    room.log.unshift(`Innings break. Team ${chasingTeam} needs ${room.score[firstBattingTeam].runs + 1} to win.`);
     return;
   }
 
-  const teamARuns = room.score.A.runs;
-  const teamBRuns = room.score.B.runs;
+  const firstBattingTeam = room.battingFirstTeam;
+  const chasingTeam = firstBattingTeam === "A" ? "B" : "A";
+  const firstBattingRuns = room.score[firstBattingTeam].runs;
+  const chasingRuns = room.score[chasingTeam].runs;
   room.status = "finished";
-  room.winner = teamARuns === teamBRuns ? "Tie" : teamARuns > teamBRuns ? "A" : "B";
+  room.winner = firstBattingRuns === chasingRuns ? "Tie" : firstBattingRuns > chasingRuns ? firstBattingTeam : chasingTeam;
   room.log.unshift(room.winner === "Tie" ? "Match tied." : `Team ${room.winner} wins.`);
 }
 
 function isInningsOver(room) {
   const battingTeam = getBattingTeam(room);
   const battingScore = room.score[battingTeam];
-  const targetReached = room.innings === 1 && battingScore.runs > room.score.A.runs;
+  const firstBattingTeam = room.battingFirstTeam;
+  const targetReached = room.innings === 1 && battingScore.runs > room.score[firstBattingTeam].runs;
 
   return battingScore.balls >= MAX_BALLS || battingScore.wickets >= WICKETS_PER_TEAM || targetReached;
 }
@@ -401,7 +480,9 @@ function getActiveBowler(room, team) {
 }
 
 function getBattingTeam(room) {
-  return room.innings === 0 ? "A" : "B";
+  const firstBattingTeam = room.battingFirstTeam || "A";
+  if (room.innings === 0) return firstBattingTeam;
+  return firstBattingTeam === "A" ? "B" : "A";
 }
 
 function publishRoom(room) {
@@ -436,6 +517,8 @@ function serializeRoom(room) {
     hostId: room.hostId,
     players: room.players,
     status: room.status,
+    toss: room.toss,
+    battingFirstTeam: room.battingFirstTeam,
     innings: room.innings,
     battingTeam,
     bowlingTeam,
