@@ -284,10 +284,16 @@ function openEvents() {
     const room = JSON.parse(event.data);
     state.room = room;
     
-    if (room.status === "waiting") renderLobby();
-    else if (room.status === "toss") renderToss();
-    else if (room.status === "playing") renderMatch();
-    else if (room.status === "finished") renderResult();
+    if (room.status === "waiting") {
+      renderLobby();
+    } else if (room.status === "toss") {
+      renderLobby();
+      renderToss();
+    } else if (room.status === "playing") {
+      renderMatch();
+    } else if (room.status === "finished") {
+      renderResult();
+    }
   };
 }
 
@@ -331,7 +337,7 @@ function renderToss() {
   const { toss } = state.room;
   el.tossOverlay.classList.remove("hidden");
   
-  const isCalling = toss.status === "calling";
+  const isCalling = toss.status === "call";
   const isDecision = toss.status === "decision";
   
   // Find who acts
