@@ -204,17 +204,72 @@ async function handleToss(request, response) {
     return;
   }
 
-  if (room.hostId !== body.hostPlayerId) {
-    sendJson(response, 403, { ok: false, error: "Only the host can flip the toss." });
-    return;
-  }
-
   if (room.status !== "toss") {
     sendJson(response, 400, { ok: false, error: "Toss is not available right now." });
     return;
   }
 
-  flipTossAndStart(room);
+  if (body.action === "call") {
+    handleTossCall(room, body, response);
+    return;
+  }
+
+  if (body.action === "decision") {
+    handleTossDecision(room, body, response);
+    return;
+  }
+
+  sendJson(response, 400, { ok: false, error: "Choose a valid toss action." });
+}
+
+function handleTossCall(room, body, response) {
+  const call = normalizeTossCall(body.call);
+
+  if (!call) {
+    sendJson(response, 400, { ok: false, error: "Choose heads or tails." });
+    return;
+  }
+
+  if (room.toss?.status !== "call") {
+    sendJson(response, 400, { ok: false, error: "The toss call has already been made." });
+    return;
+  }
+
+  const callingCaptain = getTeamCaptain(room, room.toss.callingTeam);
+  if (callingCaptain?.id !== body.playerId) {
+    sendJson(response, 403, { ok: false, error: "Only the calling captain can choose heads or tails." });
+    return;
+  }
+
+  flipToss(room, call);
+  publishRoom(room);
+  sendJson(response, 200, { ok: true, room: serializeRoom(room) });
+}
+
+function handleTossDecision(room, body, response) {
+  const decision = body.decision === "bowl" ? "bowl" : body.decision === "bat" ? "bat" : null;
+
+  if (!decision) {
+    sendJson(response, 400, { ok: false, error: "Choose bat or bowl." });
+    return;
+  }
+
+  if (room.toss?.status !== "decision") {
+    sendJson(response, 400, { ok: false, error: "The toss winner cannot choose yet." });
+    return;
+  }
+
+  const winningCaptain = getTeamCaptain(room, room.toss.winnerTeam);
+  if (winningCaptain?.id !== body.playerId) {
+    sendJson(response, 403, { ok: false, error: "Only the toss-winning captain can choose bat or bowl." });
+    return;
+  }
+
+  const battingFirstTeam =
+    decision === "bat" ? room.toss.winnerTeam : room.toss.winnerTeam === "A" ? "B" : "A";
+  room.toss.decision = decision;
+  room.toss.decisionTeam = room.toss.winnerTeam;
+  startMatch(room, battingFirstTeam);
   publishRoom(room);
   sendJson(response, 200, { ok: true, room: serializeRoom(room) });
 }
@@ -317,25 +372,32 @@ function prepareToss(room) {
   room.winner = null;
   room.battingFirstTeam = "A";
   room.toss = {
-    status: "ready",
+    status: "call",
+    callingTeam: "B",
+    call: null,
     winnerTeam: null,
     result: null,
+    decision: null,
+    decisionTeam: null,
     flippedAt: null
   };
-  room.log = ["All players joined. Host can flip the toss."];
+  room.log = ["All players joined. Team B captain can call heads or tails."];
   publishRoomList();
 }
 
-function flipTossAndStart(room) {
+function flipToss(room, call) {
   const result = crypto.randomInt(2) === 0 ? "Heads" : "Tails";
-  const winnerTeam = result === "Heads" ? "A" : "B";
+  const callingTeam = room.toss.callingTeam;
+  const winnerTeam = result === call ? callingTeam : callingTeam === "A" ? "B" : "A";
   room.toss = {
-    status: "done",
+    ...room.toss,
+    status: "decision",
+    call,
     winnerTeam,
     result,
     flippedAt: Date.now()
   };
-  startMatch(room, winnerTeam);
+  room.log.unshift(`${call} called. Toss result: ${result}. Team ${winnerTeam} won the toss.`);
 }
 
 function startMatch(room, battingFirstTeam = room.battingFirstTeam || "A") {
@@ -346,7 +408,8 @@ function startMatch(room, battingFirstTeam = room.battingFirstTeam || "A") {
   room.pendingChoices = {};
   room.lastBall = null;
   room.winner = null;
-  room.log.unshift(`Toss result: ${room.toss?.result}. Team ${battingFirstTeam} bats first.`);
+  const tossDecision = room.toss?.decision ? ` Team ${room.toss.decisionTeam} chose to ${room.toss.decision}.` : "";
+  room.log.unshift(`Team ${battingFirstTeam} bats first.${tossDecision}`);
   room.log.unshift("Match started.");
   publishRoomList();
 }
@@ -515,6 +578,10 @@ function serializeRoom(room) {
     visibility: room.visibility,
     joinUrl: `/join/${room.code}`,
     hostId: room.hostId,
+    captains: {
+      A: getTeamCaptain(room, "A")?.id || null,
+      B: getTeamCaptain(room, "B")?.id || null
+    },
     players: room.players,
     status: room.status,
     toss: room.toss,
@@ -581,6 +648,17 @@ function openEventStream(request, response, rawRoomCode) {
 function getNotOutTeammates(room, team) {
   const outPlayerIds = room.score[team].outPlayerIds;
   return room.players.filter((player) => player.team === team && !outPlayerIds.includes(player.id));
+}
+
+function getTeamCaptain(room, team) {
+  return room.players.find((player) => player.team === team);
+}
+
+function normalizeTossCall(call) {
+  const normalizedCall = String(call || "").trim().toLowerCase();
+  if (normalizedCall === "heads") return "Heads";
+  if (normalizedCall === "tails") return "Tails";
+  return null;
 }
 
 function getOnlyNotOutIndex(room, team) {
