@@ -202,7 +202,7 @@ function initDashboard() {
   
   // Build Run Pad
   el.runPad.innerHTML = RUN_OPTIONS.map((run) => `
-    <button class="bg-surface text-primary brutalist-border brutalist-shadow-white p-4 md:p-8 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn" data-run="${run}">
+    <button class="bg-surface text-primary brutalist-border brutalist-shadow-white p-2 md:p-4 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn" data-run="${run}">
       <span class="font-display-lg text-display-lg group-hover:text-primary-fixed transition-colors pointer-events-none">${run}</span>
       <span class="absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none">${run === 4 ? 'FOU' : run === 6 ? 'SIX' : run === 1 ? 'ONE' : run === 2 ? 'TWO' : run === 3 ? 'THR' : 'RUN'}</span>
     </button>`).join("");
@@ -471,14 +471,14 @@ function renderMatch() {
       const myPendingChoice = r.pendingChoices[myRole.toLowerCase()];
       const isSelected = myPendingChoice === parseInt(btn.dataset.run, 10);
       if (isSelected) {
-        btn.className = "bg-safe-orange text-surface border-4 border-primary brutalist-shadow-primary p-4 md:p-8 flex items-center justify-center brutalist-button relative transform scale-[1.02] key-btn selected";
+        btn.className = "bg-safe-orange text-surface border-4 border-primary brutalist-shadow-primary p-2 md:p-4 flex items-center justify-center brutalist-button relative transform scale-[1.02] key-btn selected";
         btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-surface pointer-events-none";
       } else {
-        btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-4 md:p-8 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
+        btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-2 md:p-4 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
         btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none";
       }
     } else {
-      btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-4 md:p-8 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
+      btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-2 md:p-4 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
       btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none";
     }
   });
