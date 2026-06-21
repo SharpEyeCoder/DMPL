@@ -399,7 +399,10 @@ function removePlayer(room, playerId, logEntry) {
 
   rebalanceTeams(room);
 
-  if (room.players.length < 4) {
+  if (room.players.length === 0) {
+    rooms.delete(room.code);
+    streams.delete(room.code);
+  } else if (room.players.length < 4) {
     resetRoomToWaiting(room);
   }
   publishRoomList();
