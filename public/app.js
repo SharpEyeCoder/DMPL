@@ -470,7 +470,7 @@ function renderMatch() {
     if (revealLockTimer) clearTimeout(revealLockTimer);
     revealLockTimer = setTimeout(() => {
       cachedRevealBall = null;
-      renderMatch(state.currentRoom);
+      renderMatch();
     }, 2000);
   }
   totalBallsProcessed = currentBalls;
