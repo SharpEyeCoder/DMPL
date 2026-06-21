@@ -261,6 +261,11 @@ async function postJson(url, data) {
     const json = await res.json().catch(() => ({}));
     return { ok: true, json: () => Promise.resolve(json), ...json };
   }
+  if (res.status === 404) {
+    alert("This match room was lost (the server likely restarted to apply an update). Returning to the homepage.");
+    window.location.reload();
+    return { ok: false, error: "Room not found" };
+  }
   const err = await res.json().catch(() => ({}));
   return { ok: false, error: err.error || "Request failed" };
 }
