@@ -201,7 +201,11 @@ function initDashboard() {
   openLobbyEvents();
   
   // Build Run Pad
-  el.runPad.innerHTML = RUN_OPTIONS.map((run) => `<button class="key-btn" data-label="${run === 4 ? 'FOU' : run === 6 ? 'SIX' : 'RUN'}" data-run="${run}">${run}</button>`).join("");
+  el.runPad.innerHTML = RUN_OPTIONS.map((run) => `
+    <button class="bg-surface text-primary brutalist-border brutalist-shadow-white p-4 md:p-8 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn" data-run="${run}">
+      <span class="font-display-lg text-display-lg group-hover:text-primary-fixed transition-colors pointer-events-none">${run}</span>
+      <span class="absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none">${run === 4 ? 'FOU' : run === 6 ? 'SIX' : run === 1 ? 'ONE' : run === 2 ? 'TWO' : run === 3 ? 'THR' : 'RUN'}</span>
+    </button>`).join("");
   
   document.querySelectorAll(".key-btn").forEach(btn => {
     btn.addEventListener("click", () => handlePlayCall(parseInt(btn.dataset.run, 10)));
@@ -341,10 +345,12 @@ function renderToss() {
   const isDecision = toss.status === "decision";
   
   // Find who acts
+  const myPlayer = state.room.players.find(p => p.id === state.playerId);
+  const myTeam = myPlayer ? myPlayer.team : null;
   const callingCaptain = state.room.players.find(p => p.team === toss.callingTeam);
   const isCaptain = callingCaptain ? state.playerId === callingCaptain.id : false;
-  const isWinningCaptain = toss.winnerId ? toss.winnerId === state.playerId : 
-                            (toss.winnerTeam ? state.room.players.find(p => p.team === toss.winnerTeam)?.id === state.playerId : false);
+  const isWinningTeam = toss.winnerTeam === myTeam;
+  const isWinningCaptain = toss.winnerTeam ? state.room.players.find(p => p.team === toss.winnerTeam)?.id === state.playerId : false;
   
   el.tossCallActions.classList.add("hidden");
   el.tossChoiceActions.classList.add("hidden");
@@ -362,18 +368,18 @@ function renderToss() {
       state.lastTossFlip = toss.result;
       el.tossStatusText.textContent = "FLIPPING COIN...";
       el.tossCoinAnim.classList.add("flipping");
-      if (toss.result === "tails") el.tossCoinAnim.classList.add("to-tails");
+      if (toss.result === "Tails") el.tossCoinAnim.classList.add("to-tails");
       
       state.isFlipping = true;
       setTimeout(() => {
         state.isFlipping = false;
-        el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${toss.winnerId === state.playerId ? 'YOU' : 'THEY'} WON THE TOSS.`;
+        el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${isWinningTeam ? 'YOUR TEAM' : 'THEIR TEAM'} WON THE TOSS.`;
         if (isWinningCaptain) {
           el.tossChoiceActions.classList.remove("hidden");
         }
       }, 3000); // 3 seconds animation
     } else if (!state.isFlipping) {
-      el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${toss.winnerId === state.playerId ? 'YOU' : 'THEY'} WON THE TOSS.`;
+      el.tossStatusText.textContent = `${toss.result.toUpperCase()}! ${isWinningTeam ? 'YOUR TEAM' : 'THEIR TEAM'} WON THE TOSS.`;
       if (isWinningCaptain) {
         el.tossChoiceActions.classList.remove("hidden");
       } else {
@@ -408,8 +414,8 @@ function renderMatch() {
   const sA = r.score["A"];
   const sB = r.score["B"];
   
-  el.scoreA.innerHTML = `${sA.runs} <span>/ ${sA.wickets}</span>`;
-  el.scoreB.innerHTML = `${sB.runs} <span>/ ${sB.wickets}</span>`;
+  el.scoreA.innerHTML = `${sA.runs} <span class="text-on-surface-variant text-4xl">/ ${sA.wickets}</span>`;
+  el.scoreB.innerHTML = `${sB.runs} <span class="text-on-surface-variant text-2xl">/ ${sB.wickets}</span>`;
   el.oversA.textContent = `OVERS: ${Math.floor(sA.balls / 6)}.${sA.balls % 6} / 4`;
   el.oversB.textContent = `OVERS: ${Math.floor(sB.balls / 6)}.${sB.balls % 6} / 4`;
   el.crrA.textContent = `CRR: ${sA.balls ? ((sA.runs / sA.balls) * 6).toFixed(1) : "0.0"}`;
@@ -426,8 +432,8 @@ function renderMatch() {
     const sChase = r.score[chasing];
     const remRuns = target - sChase.runs;
     const remBalls = 24 - sChase.balls;
-    if (chasing === "A") { el.targetA.textContent = `TARGET: ${target} | NEED ${remRuns} FROM ${remBalls}`; el.targetA.classList.remove("hidden"); }
-    if (chasing === "B") { el.targetB.textContent = `TARGET: ${target} | NEED ${remRuns} FROM ${remBalls}`; el.targetB.classList.remove("hidden"); }
+    if (chasing === "A") { el.targetA.innerHTML = `TARGET: ${target}<br>NEED ${remRuns} FROM ${remBalls}`; el.targetA.classList.remove("hidden"); }
+    if (chasing === "B") { el.targetB.innerHTML = `TARGET: ${target}<br>NEED ${remRuns} FROM ${remBalls}`; el.targetB.classList.remove("hidden"); }
   }
 
   // Active Players
@@ -453,21 +459,42 @@ function renderMatch() {
     if (canPlay) {
       // highlight choice if already made
       const myPendingChoice = r.pendingChoices[myRole.toLowerCase()];
-      btn.classList.toggle("selected", myPendingChoice === parseInt(btn.dataset.run, 10));
+      const isSelected = myPendingChoice === parseInt(btn.dataset.run, 10);
+      if (isSelected) {
+        btn.className = "bg-safe-orange text-surface border-4 border-primary brutalist-shadow-primary p-4 md:p-8 flex items-center justify-center brutalist-button relative transform scale-[1.02] key-btn selected";
+        btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-surface pointer-events-none";
+      } else {
+        btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-4 md:p-8 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
+        btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none";
+      }
     } else {
-      btn.classList.remove("selected");
+      btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-4 md:p-8 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
+      btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none";
     }
   });
   
-  if (r.pendingChoices.batter) el.batterChoice.textContent = "✓"; else el.batterChoice.textContent = "?";
-  if (r.pendingChoices.bowler) el.bowlerChoice.textContent = "✓"; else el.bowlerChoice.textContent = "?";
+  if (r.pendingChoices.batter) {
+    el.batterChoice.textContent = "✓";
+    el.bowlerChoice.textContent = "✓";
+    el.batterChoice.classList.remove("opacity-50");
+    el.bowlerChoice.classList.remove("opacity-50");
+  } else {
+    el.batterChoice.textContent = "?";
+    el.bowlerChoice.textContent = "?";
+    el.batterChoice.classList.add("opacity-50");
+    el.bowlerChoice.classList.add("opacity-50");
+  }
   
   // Render log
   el.matchLog.innerHTML = r.log.slice(0, 5).map(l => {
     const isWicket = l.includes("Wicket");
     const isSix = l.includes("6 run");
-    const cls = isWicket ? "WICKET" : isSix ? "SIX" : "RUN";
-    return `<div class="log-entry ${cls}"><div class="tag">${cls}!</div><div class="msg">${l}</div></div>`;
+    const cls = isWicket ? "text-primary-container" : isSix ? "text-safe-orange" : "text-primary";
+    const tag = isWicket ? "WICKET!" : isSix ? "SIX!" : "RUN!";
+    return `<div class="bg-surface-container p-2 brutalist-border flex justify-between items-center font-label-md text-label-md mb-2">
+              <span class="${cls}">${tag}</span>
+              <span class="text-on-surface-variant">${l}</span>
+            </div>`;
   }).join("");
 }
 
