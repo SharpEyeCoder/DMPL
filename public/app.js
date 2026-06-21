@@ -464,46 +464,78 @@ function renderMatch() {
   el.batterName.textContent = batter ? batter.name : "BATTER";
   el.bowlerName.textContent = bowler ? bowler.name : "BOWLER";
 
+  let currentBalls = r.score.A.balls + r.score.B.balls;
+  if (totalBallsProcessed !== -1 && currentBalls > totalBallsProcessed && r.lastBall) {
+    cachedRevealBall = r.lastBall;
+    if (revealLockTimer) clearTimeout(revealLockTimer);
+    revealLockTimer = setTimeout(() => {
+      cachedRevealBall = null;
+      renderMatch(state.currentRoom);
+    }, 2000);
+  }
+  totalBallsProcessed = currentBalls;
+
   document.querySelectorAll(".key-btn").forEach(btn => {
-    btn.disabled = !canPlay;
-    if (canPlay) {
+    btn.disabled = !canPlay || cachedRevealBall !== null;
+    if (canPlay && !cachedRevealBall) {
       // highlight choice if already made
-      const myPendingChoice = r.pendingChoices[myRole.toLowerCase()];
+      const myPendingChoice = r.pendingChoices && r.pendingChoices[myRole.toLowerCase()];
       const isSelected = myPendingChoice === parseInt(btn.dataset.run, 10);
       if (isSelected) {
-        btn.className = "bg-safe-orange text-surface border-4 border-primary brutalist-shadow-primary p-2 md:p-4 flex items-center justify-center brutalist-button relative transform scale-[1.02] key-btn selected";
+        btn.className = "bg-safe-orange text-surface p-2 md:p-4 flex items-center justify-center relative transform scale-[1.02] key-btn selected";
         btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-surface pointer-events-none";
       } else {
-        btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-2 md:p-4 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
+        btn.className = "bg-surface-container text-primary p-2 md:p-4 flex items-center justify-center relative group hover:bg-surface-variant key-btn border border-surface-variant";
         btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none";
       }
     } else {
-      btn.className = "bg-surface text-primary brutalist-border brutalist-shadow-white p-2 md:p-4 flex items-center justify-center brutalist-button relative group hover:bg-surface-variant key-btn";
+      btn.className = "bg-surface-container text-primary p-2 md:p-4 flex items-center justify-center relative group hover:bg-surface-variant key-btn border border-surface-variant opacity-50";
       btn.querySelector("span:last-child").className = "absolute top-2 left-2 font-label-md text-label-md text-on-surface-variant pointer-events-none";
     }
   });
   
-  if (r.pendingChoices.batter) {
+  if (cachedRevealBall) {
+    el.batterChoice.textContent = cachedRevealBall.batterChoice;
+    el.bowlerChoice.textContent = cachedRevealBall.bowlerChoice;
+    el.batterChoice.classList.remove("opacity-50");
+    el.bowlerChoice.classList.remove("opacity-50");
+  } else if (r.pendingChoices && r.pendingChoices.batter !== undefined && r.pendingChoices.bowler !== undefined) {
+    // Should theoretically not happen unless server is slow, but just in case
     el.batterChoice.textContent = "✓";
     el.bowlerChoice.textContent = "✓";
     el.batterChoice.classList.remove("opacity-50");
     el.bowlerChoice.classList.remove("opacity-50");
   } else {
-    el.batterChoice.textContent = "?";
-    el.bowlerChoice.textContent = "?";
-    el.batterChoice.classList.add("opacity-50");
-    el.bowlerChoice.classList.add("opacity-50");
+    const batterHasChosen = r.pendingChoices && r.pendingChoices.batter !== undefined;
+    const bowlerHasChosen = r.pendingChoices && r.pendingChoices.bowler !== undefined;
+    
+    if (myRole === "BATTER") {
+      el.batterChoice.textContent = batterHasChosen ? r.pendingChoices.batter : "?";
+      el.bowlerChoice.textContent = bowlerHasChosen ? "READY" : "?";
+      el.batterChoice.classList.toggle("opacity-50", !batterHasChosen);
+      el.bowlerChoice.classList.toggle("opacity-50", !bowlerHasChosen);
+    } else if (myRole === "BOWLER") {
+      el.bowlerChoice.textContent = bowlerHasChosen ? r.pendingChoices.bowler : "?";
+      el.batterChoice.textContent = batterHasChosen ? "READY" : "?";
+      el.bowlerChoice.classList.toggle("opacity-50", !bowlerHasChosen);
+      el.batterChoice.classList.toggle("opacity-50", !batterHasChosen);
+    } else {
+      el.batterChoice.textContent = "?";
+      el.bowlerChoice.textContent = "?";
+      el.batterChoice.classList.add("opacity-50");
+      el.bowlerChoice.classList.add("opacity-50");
+    }
   }
   
   // Render log
   el.matchLog.innerHTML = r.log.slice(0, 5).map(l => {
     const isWicket = l.includes("Wicket");
     const isSix = l.includes("6 run");
-    const cls = isWicket ? "text-primary-container" : isSix ? "text-safe-orange" : "text-primary";
+    const cls = isWicket ? "text-primary-fixed" : isSix ? "text-safe-orange" : "text-primary";
     const tag = isWicket ? "WICKET!" : isSix ? "SIX!" : "RUN!";
-    return `<div class="bg-surface-container p-2 brutalist-border flex justify-between items-center font-label-md text-label-md mb-2">
+    return `<div class="flex justify-between items-center font-label-md text-label-md py-2 border-b border-surface-variant">
               <span class="${cls}">${tag}</span>
-              <span class="text-on-surface-variant">${l}</span>
+              <span class="text-on-surface-variant text-right ml-4">${l}</span>
             </div>`;
   }).join("");
 }
