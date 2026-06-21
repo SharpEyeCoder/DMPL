@@ -356,7 +356,7 @@ function renderToss() {
   el.tossChoiceActions.classList.add("hidden");
   
   if (isCalling) {
-    el.tossCoinAnim.classList.remove("flipping", "to-tails");
+    el.tossCoinAnim.style.animation = "none";
     if (isCaptain) {
       el.tossStatusText.textContent = "YOUR CALL. HEADS OR TAILS?";
       el.tossCallActions.classList.remove("hidden");
@@ -367,8 +367,13 @@ function renderToss() {
     if (state.lastTossFlip !== toss.result) {
       state.lastTossFlip = toss.result;
       el.tossStatusText.textContent = "FLIPPING COIN...";
-      el.tossCoinAnim.classList.add("flipping");
-      if (toss.result === "Tails") el.tossCoinAnim.classList.add("to-tails");
+      
+      el.tossCoinAnim.style.animation = "none";
+      void el.tossCoinAnim.offsetWidth; // trigger reflow
+      
+      el.tossCoinAnim.style.animation = toss.result === "Tails" 
+        ? "flipCoinTails 3s cubic-bezier(0.1, 0.8, 0.4, 1) forwards"
+        : "flipCoinHeads 3s cubic-bezier(0.1, 0.8, 0.4, 1) forwards";
       
       state.isFlipping = true;
       setTimeout(() => {

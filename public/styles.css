@@ -721,7 +721,7 @@ button:disabled {
 }
 
 .toss-coin.flipping {
-  animation: flipCoin 3s cubic-bezier(0.1, 0.8, 0.4, 1) forwards;
+  /* Animation dynamically assigned by JS */
 }
 
 .toss-coin .face {
@@ -750,20 +750,16 @@ button:disabled {
   transform: rotateY(180deg);
 }
 
-@keyframes flipCoin {
+@keyframes flipCoinHeads {
   0% { transform: translateY(0) rotateY(0) scale(1); }
   50% { transform: translateY(-300px) rotateY(1080deg) scale(1.5); }
-  100% { transform: translateY(0) rotateY(2160deg) scale(1); } /* End on Heads default, JS will adjust */
+  100% { transform: translateY(0) rotateY(2160deg) scale(1); } /* End on Heads */
 }
 
 @keyframes flipCoinTails {
   0% { transform: translateY(0) rotateY(0) scale(1); }
   50% { transform: translateY(-300px) rotateY(1080deg) scale(1.5); }
   100% { transform: translateY(0) rotateY(2340deg) scale(1); } /* End on Tails */
-}
-
-.toss-coin.flipping.to-tails {
-  animation: flipCoinTails 3s cubic-bezier(0.1, 0.8, 0.4, 1) forwards;
 }
 
 .toss-status {
