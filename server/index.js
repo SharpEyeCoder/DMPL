@@ -839,12 +839,7 @@ function getContentType(filePath) {
 }
 
 function getCacheControl(filePath) {
-  const extension = extname(filePath);
-  if (extension === ".html" || extension === ".js" || extension === ".css") {
-    return "no-store";
-  }
-
-  return "public, max-age=3600";
+  return "no-store, no-cache, must-revalidate, proxy-revalidate";
 }
 
 // Auth helpers
