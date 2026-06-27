@@ -288,11 +288,10 @@ function openLobbyEvents() {
   };
 }
 
-function connectToRoom(roomCode) {
+function openEvents() {
   if (state.events) state.events.close();
   totalBallsProcessed = -1;
-  const evtSource = new EventSource(`/api/room/${roomCode}/events?playerId=${state.playerId}`);
-  state.events = evtSource;
+  state.events = new EventSource(`/events?roomCode=${state.roomCode}&playerId=${state.playerId}`);
   state.events.onmessage = (event) => {
     const room = JSON.parse(event.data);
     state.room = room;
