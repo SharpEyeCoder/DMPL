@@ -30,9 +30,14 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  // Only cache GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+
   // We want to serve from network first for API calls or SSE
   if (event.request.url.includes('/api/') || event.request.url.includes('/events')) {
-    return; // Let the browser handle it normally
+    return; 
   }
 
   event.respondWith(
