@@ -9,6 +9,8 @@ const state = {
   lastTossFlip: null
 };
 
+let totalBallsProcessed = -1;
+
 const el = {
   loginView: document.getElementById("loginView"),
   profileSetupView: document.getElementById("profileSetupView"),
@@ -286,9 +288,11 @@ function openLobbyEvents() {
   };
 }
 
-function openEvents() {
+function connectToRoom(roomCode) {
   if (state.events) state.events.close();
-  state.events = new EventSource(`/events?roomCode=${state.roomCode}&playerId=${state.playerId}`);
+  totalBallsProcessed = -1;
+  const evtSource = new EventSource(`/api/room/${roomCode}/events?playerId=${state.playerId}`);
+  state.events = evtSource;
   state.events.onmessage = (event) => {
     const room = JSON.parse(event.data);
     state.room = room;
@@ -465,7 +469,10 @@ function renderMatch() {
   el.bowlerName.textContent = bowler ? bowler.name : "BOWLER";
 
   let currentBalls = r.score.A.balls + r.score.B.balls;
-  if (totalBallsProcessed !== -1 && currentBalls > totalBallsProcessed && r.lastBall) {
+  if (totalBallsProcessed === -1) {
+    // Just joined, initialize without playing animation for old balls
+    totalBallsProcessed = currentBalls;
+  } else if (currentBalls > totalBallsProcessed && r.lastBall) {
     cachedRevealBall = r.lastBall;
     if (revealLockTimer) clearTimeout(revealLockTimer);
     revealLockTimer = setTimeout(() => {
