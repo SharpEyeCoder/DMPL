@@ -86,8 +86,10 @@ const el = {
   targetB: document.getElementById("targetB"),
   
   bowlerName: document.getElementById("bowlerName"),
-  bowlerChoice: document.getElementById("bowlerChoice"),
+  bowlerMatchStats: document.getElementById("bowlerMatchStats"),
   batterName: document.getElementById("batterName"),
+  batterMatchStats: document.getElementById("batterMatchStats"),
+  bowlerChoice: document.getElementById("bowlerChoice"),
   batterChoice: document.getElementById("batterChoice"),
   playerRoleBadge: document.getElementById("playerRoleBadge"),
   runPad: document.getElementById("runPad"),
@@ -468,6 +470,20 @@ function renderMatch() {
   
   el.batterName.textContent = batter ? batter.name : "BATTER";
   el.bowlerName.textContent = bowler ? bowler.name : "BOWLER";
+  
+  if (batter) {
+    el.batterMatchStats.textContent = `${batter.stats.runsScored} (${batter.stats.ballsFaced})`;
+  } else {
+    el.batterMatchStats.textContent = "0 (0)";
+  }
+  
+  if (bowler) {
+    const overs = Math.floor(bowler.stats.ballsBowled / 6);
+    const balls = bowler.stats.ballsBowled % 6;
+    el.bowlerMatchStats.textContent = `${bowler.stats.runsConceded}/${bowler.stats.wicketsTaken} (${overs}.${balls})`;
+  } else {
+    el.bowlerMatchStats.textContent = "0/0 (0.0)";
+  }
 
   let currentBalls = r.score.A.balls + r.score.B.balls;
   if (totalBallsProcessed === -1) {
