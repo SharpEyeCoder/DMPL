@@ -10,6 +10,8 @@ const state = {
 };
 
 let totalBallsProcessed = -1;
+let cachedRevealBall = null;
+let revealLockTimer = null;
 
 const el = {
   loginView: document.getElementById("loginView"),
