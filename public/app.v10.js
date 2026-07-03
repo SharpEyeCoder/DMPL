@@ -89,6 +89,12 @@ const el = {
   bowlerMatchStats: document.getElementById("bowlerMatchStats"),
   batterName: document.getElementById("batterName"),
   batterMatchStats: document.getElementById("batterMatchStats"),
+  audienceOverlay: document.getElementById("audienceOverlay"),
+  audienceCard: document.getElementById("audienceCard"),
+  audienceCardText: document.getElementById("audienceCardText"),
+  sfxBat: document.getElementById("sfxBat"),
+  sfxStumps: document.getElementById("sfxStumps"),
+  sfxCrowd: document.getElementById("sfxCrowd"),
   bowlerChoice: document.getElementById("bowlerChoice"),
   batterChoice: document.getElementById("batterChoice"),
   playerRoleBadge: document.getElementById("playerRoleBadge"),
@@ -516,11 +522,14 @@ function renderMatch() {
     totalBallsProcessed = currentBalls;
   } else if (currentBalls > totalBallsProcessed && r.lastBall) {
     cachedRevealBall = r.lastBall;
+    // Trigger audience card + sounds
+    triggerAudienceEvent(r.lastBall);
     if (revealLockTimer) clearTimeout(revealLockTimer);
     revealLockTimer = setTimeout(() => {
+      dismissAudienceCard();
       cachedRevealBall = null;
       renderMatch();
-    }, 2000);
+    }, 2500);
   }
   totalBallsProcessed = currentBalls;
 
@@ -587,6 +596,59 @@ function renderMatch() {
               <span class="text-on-surface-variant text-right ml-4">${l}</span>
             </div>`;
   }).join("");
+}
+
+function playSfx(audioEl) {
+  if (!audioEl) return;
+  audioEl.currentTime = 0;
+  audioEl.play().catch(() => {});
+}
+
+let audienceTimer = null;
+
+function triggerAudienceEvent(ball) {
+  const isWicket = ball.isOut;
+  const runs = ball.batterChoice;
+
+  let label, cardClass;
+  if (isWicket) {
+    label = "WICKET!";
+    cardClass = "wicket-card";
+  } else if (runs === 6) {
+    label = "SIX!";
+    cardClass = "six-card";
+  } else if (runs === 4) {
+    label = "FOUR!";
+    cardClass = "four-card";
+  } else {
+    return; // no animation for 0,1,2,3
+  }
+
+  // Reset any existing animation
+  if (audienceTimer) { clearTimeout(audienceTimer); audienceTimer = null; }
+  const overlay = el.audienceOverlay;
+  const card = el.audienceCard;
+  el.audienceCardText.textContent = label;
+  card.className = `audience-card ${cardClass}`;
+
+  overlay.className = "audience-overlay show-in";
+
+  // Play sounds
+  if (isWicket) {
+    playSfx(el.sfxStumps);
+    audienceTimer = setTimeout(() => playSfx(el.sfxCrowd), 400);
+  } else {
+    playSfx(el.sfxBat);
+    audienceTimer = setTimeout(() => playSfx(el.sfxCrowd), 300);
+  }
+}
+
+function dismissAudienceCard() {
+  const overlay = el.audienceOverlay;
+  overlay.className = "audience-overlay show-out";
+  setTimeout(() => {
+    overlay.className = "audience-overlay hidden";
+  }, 400);
 }
 
 function handlePlayCall(run) {

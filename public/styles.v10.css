@@ -823,3 +823,131 @@ input[type="text"] {
   width: 100%;
   margin-bottom: 10px;
 }
+
+/* ==========================================
+   AUDIENCE CARD ANIMATION
+   ========================================== */
+
+@keyframes audienceSlideIn {
+  0%   { transform: translateY(120%) scale(0.5); opacity: 0; }
+  60%  { transform: translateY(-10%) scale(1.08); opacity: 1; }
+  75%  { transform: translateY(0%) scale(0.97); opacity: 1; }
+  90%  { transform: translateY(-4%) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0%) scale(1); opacity: 1; }
+}
+
+@keyframes audienceSlideOut {
+  0%   { transform: translateY(0%) scale(1); opacity: 1; }
+  100% { transform: translateY(130%) scale(0.5); opacity: 0; }
+}
+
+@keyframes cardWiggle {
+  0%   { transform: rotate(-3deg); }
+  25%  { transform: rotate(4deg); }
+  50%  { transform: rotate(-3deg); }
+  75%  { transform: rotate(3deg); }
+  100% { transform: rotate(-3deg); }
+}
+
+@keyframes armWave {
+  0%   { transform: rotate(-20deg); }
+  50%  { transform: rotate(20deg); }
+  100% { transform: rotate(-20deg); }
+}
+
+.audience-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.audience-overlay.show-in {
+  display: flex;
+  animation: audienceSlideIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.audience-overlay.show-out {
+  display: flex;
+  animation: audienceSlideOut 0.4s ease-in forwards;
+}
+
+.audience-figure {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+}
+
+/* Cardboard sign - rendered ABOVE the figure */
+.audience-card {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  background: #f5e6c8;
+  border: 4px solid #8B5E3C;
+  border-radius: 6px;
+  padding: 10px 18px;
+  box-shadow: 4px 4px 0px #8B5E3C;
+  animation: cardWiggle 0.5s ease-in-out infinite;
+  white-space: nowrap;
+}
+
+.audience-card span {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 3px;
+  line-height: 1;
+  color: #1a1a1a;
+}
+
+.audience-card.six-card span  { color: #D4FF00; -webkit-text-stroke: 1px #1a1a1a; }
+.audience-card.four-card span { color: #FF6B00; -webkit-text-stroke: 1px #1a1a1a; }
+.audience-card.wicket-card span { color: #FF2222; -webkit-text-stroke: 1px #1a1a1a; }
+
+/* Stick figure */
+.stick-head {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid #ffffff;
+  background: #1a1a1a;
+  margin-bottom: 2px;
+}
+
+.stick-body {
+  width: 3px;
+  height: 36px;
+  background: #ffffff;
+}
+
+.stick-arm {
+  position: absolute;
+  width: 32px;
+  height: 3px;
+  background: #ffffff;
+  top: 44px;
+  transform-origin: center;
+}
+
+.stick-arm-left  { right: calc(50% + 1px); transform: rotate(-50deg); animation: armWave 0.45s ease-in-out infinite alternate; }
+.stick-arm-right { left: calc(50% + 1px);  transform: rotate(50deg);  animation: armWave 0.45s ease-in-out infinite alternate-reverse; }
+
+.stick-leg {
+  position: absolute;
+  width: 3px;
+  height: 34px;
+  background: #ffffff;
+  top: 78px;
+  transform-origin: top center;
+}
+
+.stick-leg-left  { left: calc(50% - 10px); transform: rotate(-15deg); }
+.stick-leg-right { left: calc(50% + 7px);  transform: rotate(15deg); }

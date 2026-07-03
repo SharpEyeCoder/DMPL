@@ -292,6 +292,29 @@
 
         <!-- MATCH SCREEN -->
         <div class="view hidden flex flex-grow flex-col md:flex-row p-2 md:p-margin gap-margin pb-2 md:pb-margin relative overflow-hidden h-full" id="matchView">
+
+          <!-- Audience Card Animation Overlay -->
+          <div id="audienceOverlay" class="audience-overlay hidden">
+            <div class="audience-figure">
+              <!-- Stick figure body -->
+              <div class="stick-head"></div>
+              <div class="stick-body"></div>
+              <div class="stick-arm stick-arm-left"></div>
+              <div class="stick-arm stick-arm-right"></div>
+              <div class="stick-leg stick-leg-left"></div>
+              <div class="stick-leg stick-leg-right"></div>
+              <!-- Cardboard sign held above -->
+              <div class="audience-card" id="audienceCard">
+                <span id="audienceCardText">SIX!</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audio elements -->
+          <audio id="sfxBat" src="/sounds/cricket_bat.mp3" preload="auto"></audio>
+          <audio id="sfxStumps" src="/sounds/ball_hitting_stumps.mp3" preload="auto"></audio>
+          <audio id="sfxCrowd" src="/sounds/crowd_cheering.mp3" preload="auto"></audio>
+
           <!-- Scoreboard Area -->
           <section class="w-full md:w-1/3 flex flex-col gap-margin z-10">
             <!-- Main Score (Team A) -->
