@@ -40,6 +40,10 @@ const httpServer = createServer(async (request, response) => {
     await handleAuthLogout(request, response);
     return;
   }
+  if (request.method === "POST" && url.pathname === "/api/auth/guest") {
+    await handleAuthGuest(request, response);
+    return;
+  }
   if (request.method === "GET" && url.pathname === "/api/me") {
     await handleGetMe(request, response);
     return;
@@ -809,6 +813,27 @@ async function serveStatic(pathname, response) {
   }
 }
 
+async function handleAuthGuest(request, response) {
+  try {
+    const sessionId = await db.createGuestSession();
+    
+    response.writeHead(200, {
+      "Content-Type": "application/json",
+      "Set-Cookie": cookie.serialize("session_id", sessionId, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24, // 1 day
+        path: "/",
+        sameSite: "lax",
+      })
+    });
+    response.end(JSON.stringify({ ok: true }));
+  } catch (err) {
+    console.error("Guest Auth Error:", err);
+    sendJson(response, 500, { ok: false, error: "Internal server error" });
+  }
+}
+
 async function readJsonBody(request) {
   let rawBody = "";
   for await (const chunk of request) {
@@ -915,13 +940,25 @@ async function handleProfileSetup(request, response) {
   }
   
   const body = await readJsonBody(request);
-  const name = String(body.profileName || "").trim().slice(0, 24);
-  if (!name) {
-    sendJson(response, 400, { ok: false, error: "Invalid profile name" });
-    return;
+  try {
+    const profileName = String(body.profileName || "");
+    const isGuest = user.google_id && user.google_id.startsWith('guest_');
+    let finalName = profileName.trim().substring(0, 20);
+    
+    if (isGuest) {
+      finalName = finalName.replace(/\s*\(Guest\)$/i, '');
+      finalName += ' (Guest)';
+    }
+
+    if (!finalName) {
+      sendJson(response, 400, { ok: false, error: "Invalid profile name" });
+      return;
+    }
+
+    await db.updateProfile(user.id, finalName);
+    const updatedUser = await db.getUserById(user.id);
+    sendJson(response, 200, { ok: true, user: updatedUser });
+  } catch (error) {
+    sendJson(response, 500, { ok: false, error: "Update failed" });
   }
-  
-  await db.setProfileName(user.id, name);
-  const updatedUser = await db.getUserById(user.id);
-  sendJson(response, 200, { ok: true, user: updatedUser });
 }

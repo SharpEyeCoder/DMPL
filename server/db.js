@@ -178,3 +178,32 @@ export async function updatePlayerStats(userId, { runsScored, ballsFaced, wicket
     ]
   });
 }
+
+export async function createGuestSession() {
+  const guestCode = crypto.randomBytes(3).toString('hex').toUpperCase();
+  const userId = crypto.randomUUID();
+  const googleId = `guest_${guestCode}`;
+  const email = `guest_${guestCode}@dmpl.local`;
+  const profileName = null;
+  const sessionId = crypto.randomUUID();
+  // 1 day expiration
+  const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString();
+
+  await db.execute({
+    sql: `INSERT INTO users (id, google_id, email, profile_name) VALUES (?, ?, ?, ?)`,
+    args: [userId, googleId, email, profileName]
+  });
+
+  await db.execute({
+    sql: `INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)`,
+    args: [sessionId, userId, expiresAt]
+  });
+
+  // Initialize stats for guest user
+  await db.execute({
+    sql: `INSERT INTO player_stats (user_id) VALUES (?)`,
+    args: [userId]
+  });
+
+  return sessionId;
+}

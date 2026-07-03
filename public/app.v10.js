@@ -111,6 +111,9 @@ async function checkAuth() {
     const data = await response.json();
     state.user = data.user;
     if (!state.user.profile_name) {
+      if (state.user.google_id && state.user.google_id.startsWith('guest_')) {
+        el.profileNameInput.value = state.user.google_id.replace('guest_', 'Guest_');
+      }
       switchMainView(el.profileSetupView);
     } else {
       state.playerId = state.user.id;
@@ -157,16 +160,38 @@ function renderGoogleSignIn() {
       const res = await postJson("/api/auth/google", { credential: response.credential });
       if (res.ok) {
         state.user = res.user;
-        if (!state.user.profile_name) switchMainView(el.profileSetupView);
-        else { state.playerId = state.user.id; initDashboard(); }
+        if (!state.user.profile_name) {
+          if (state.user.google_id && state.user.google_id.startsWith('guest_')) {
+            el.profileNameInput.value = state.user.google_id.replace('guest_', 'Guest_');
+          }
+          switchMainView(el.profileSetupView);
+        } else { 
+          state.playerId = state.user.id; 
+          initDashboard(); 
+        }
       }
     }
   });
   google.accounts.id.renderButton(document.getElementById("googleSignInContainer"), { theme: "filled_black", size: "large", type: "standard", shape: "rectangular" });
 }
 
-el.guestPlayBtn.addEventListener("click", () => {
-  alert("Guest play is disabled for stat tracking. Please login with Google.");
+el.guestPlayBtn.addEventListener("click", async () => {
+  el.guestPlayBtn.disabled = true;
+  el.guestPlayBtn.textContent = "STARTING...";
+  try {
+    const res = await fetch("/api/auth/guest", { method: "POST" });
+    if (res.ok) {
+      window.location.reload();
+    } else {
+      alert("Failed to start guest session.");
+      el.guestPlayBtn.disabled = false;
+      el.guestPlayBtn.textContent = "GUEST PLAY";
+    }
+  } catch (err) {
+    alert("Error connecting to server.");
+    el.guestPlayBtn.disabled = false;
+    el.guestPlayBtn.textContent = "GUEST PLAY";
+  }
 });
 
 el.profileSetupForm.addEventListener("submit", async (event) => {
