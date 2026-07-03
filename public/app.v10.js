@@ -660,10 +660,16 @@ function triggerAudienceEvent(ball) {
 
 function dismissAudienceCard() {
   const overlay = el.audienceOverlay;
-  overlay.className = "audience-overlay show-out";
-  setTimeout(() => {
+  // Only animate out if the overlay is actually showing - prevents flashing on 1/2/3 balls
+  if (overlay.className.includes('show-in')) {
+    overlay.className = "audience-overlay show-out";
+    setTimeout(() => {
+      overlay.className = "audience-overlay hidden";
+    }, 400);
+  } else {
+    // Already hidden or dismissing - just force hide with no flash
     overlay.className = "audience-overlay hidden";
-  }, 400);
+  }
 }
 
 function handlePlayCall(run) {
