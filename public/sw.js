@@ -1,4 +1,4 @@
-const CACHE_NAME = 'cricket-strike-v6';
+const CACHE_NAME = 'cricket-strike-v7';
 const ASSETS = [
   '/',
   '/index.html',
