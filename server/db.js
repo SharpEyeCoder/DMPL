@@ -78,7 +78,7 @@ export async function findOrCreateUserByGoogleId(googleId, email) {
 export async function getUserById(userId) {
   const result = await db.execute({
     sql: `
-      SELECT u.id, u.profile_name, u.email,
+      SELECT u.id, u.google_id, u.profile_name, u.email,
              s.matches_played, s.runs_scored, s.balls_faced, s.highest_score,
              s.wickets_taken, s.runs_conceded, s.balls_bowled, s.best_bowling_wickets, s.best_bowling_runs
       FROM users u
