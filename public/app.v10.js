@@ -522,14 +522,27 @@ function renderMatch() {
     totalBallsProcessed = currentBalls;
   } else if (currentBalls > totalBallsProcessed && r.lastBall) {
     cachedRevealBall = r.lastBall;
-    // Trigger audience card + sounds
-    triggerAudienceEvent(r.lastBall);
     if (revealLockTimer) clearTimeout(revealLockTimer);
-    revealLockTimer = setTimeout(() => {
+
+    const ball = r.lastBall;
+    const isSpecial = ball.isOut || ball.batterChoice === 4 || ball.batterChoice === 6;
+
+    if (isSpecial) {
+      // Show audience card and lock buttons for 1800ms
+      triggerAudienceEvent(ball);
+      revealLockTimer = setTimeout(() => {
+        dismissAudienceCard();
+        cachedRevealBall = null;
+        renderMatch();
+      }, 1800);
+    } else {
+      // Normal ball — immediately dismiss any old card, unlock buttons after 900ms
       dismissAudienceCard();
-      cachedRevealBall = null;
-      renderMatch();
-    }, 2500);
+      revealLockTimer = setTimeout(() => {
+        cachedRevealBall = null;
+        renderMatch();
+      }, 900);
+    }
   }
   totalBallsProcessed = currentBalls;
 
