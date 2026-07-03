@@ -955,7 +955,7 @@ async function handleProfileSetup(request, response) {
       return;
     }
 
-    await db.updateProfile(user.id, finalName);
+    await db.setProfileName(user.id, finalName);
     const updatedUser = await db.getUserById(user.id);
     sendJson(response, 200, { ok: true, user: updatedUser });
   } catch (error) {
