@@ -598,6 +598,21 @@ function renderMatch() {
   }).join("");
 }
 
+/* --- AUDIO ENGINE ---
+   Desktop Chrome blocks audio.play() unless called directly from a user gesture.
+   We unlock all audio elements on the very first run-pad click, then play normally. */
+let audioUnlocked = false;
+
+function unlockAudio() {
+  if (audioUnlocked) return;
+  audioUnlocked = true;
+  [el.sfxBat, el.sfxStumps, el.sfxCrowd].forEach(a => {
+    if (!a) return;
+    a.volume = 0;
+    a.play().then(() => { a.pause(); a.currentTime = 0; a.volume = 1; }).catch(() => { a.volume = 1; });
+  });
+}
+
 function playSfx(audioEl) {
   if (!audioEl) return;
   audioEl.currentTime = 0;
@@ -652,6 +667,8 @@ function dismissAudienceCard() {
 }
 
 function handlePlayCall(run) {
+  // Unlock audio synchronously within the user gesture so desktop Chrome allows playback
+  unlockAudio();
   // Optimistically disable buttons to prevent double-clicking and 403 errors
   document.querySelectorAll(".key-btn").forEach(btn => btn.disabled = true);
   postJson(`/api/choice`, { roomCode: state.roomCode, playerId: state.playerId, run });

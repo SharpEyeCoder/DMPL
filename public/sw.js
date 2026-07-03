@@ -1,9 +1,12 @@
-const CACHE_NAME = 'cricket-strike-v1';
+const CACHE_NAME = 'cricket-strike-v6';
 const ASSETS = [
   '/',
   '/index.html',
   '/styles.v10.css',
-  '/app.v10.js'
+  '/app.v10.js',
+  '/sounds/cricket_bat.mp3',
+  '/sounds/ball_hitting_stumps.mp3',
+  '/sounds/crowd_cheering.mp3'
 ];
 
 self.addEventListener('install', (event) => {
