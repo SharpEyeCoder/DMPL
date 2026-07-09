@@ -33,26 +33,26 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Only cache GET requests
-  if (event.request.method !== 'GET') {
-    return;
-  }
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
 
-  // We want to serve from network first for API calls or SSE
-  if (event.request.url.includes('/api/') || event.request.url.includes('/events')) {
-    return; 
-  }
+  // Never intercept API calls or SSE streams
+  if (event.request.url.includes('/api/') || event.request.url.includes('/events')) return;
 
+  // Network-first strategy: always try network, fall back to cache if offline.
+  // This means any newly deployed CSS/JS is immediately visible without bumping the SW version.
   event.respondWith(
-    caches.match(event.request)
-      .then((cachedResponse) => {
-        // Return cached response if found, else fetch from network
-        return cachedResponse || fetch(event.request).then((networkResponse) => {
-          return caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, networkResponse.clone());
-            return networkResponse;
-          });
+    fetch(event.request)
+      .then((networkResponse) => {
+        // Update the cache with the fresh response
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, networkResponse.clone());
         });
+        return networkResponse;
+      })
+      .catch(() => {
+        // Network unavailable — serve from cache as fallback
+        return caches.match(event.request);
       })
   );
 });
