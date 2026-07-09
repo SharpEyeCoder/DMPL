@@ -789,13 +789,15 @@ button:disabled {
 /* Additional UI Helpers */
 .join-code-form {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 10px;
   margin-top: 20px;
+  align-items: stretch;
 }
 
 .join-code-form input[type="text"] {
-  width: 100%;
+  flex: 1;
+  width: auto;
   margin-bottom: 0;
   background-color: var(--bg-darker);
   border: 3px solid var(--neon-green);
@@ -810,19 +812,24 @@ button:disabled {
   text-align: center;
   caret-color: var(--neon-green);
   box-shadow: 4px 4px 0px var(--neon-green);
+  min-width: 0;
 }
 
 .join-code-form input[type="text"]::placeholder {
   color: #555;
-  letter-spacing: 0.4em;
-  text-indent: 0.4em;
-  font-size: 2rem;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+  font-size: 1.4rem;
 }
 
 .join-code-form input[type="text"]:focus {
   outline: none;
   border-color: var(--text-main);
   box-shadow: 4px 4px 0px var(--text-main);
+}
+
+.join-code-form button {
+  flex-shrink: 0;
 }
 
 .error-text {
