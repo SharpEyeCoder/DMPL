@@ -480,8 +480,11 @@ function renderMatch() {
     const sChase = r.score[chasing];
     const remRuns = target - sChase.runs;
     const remBalls = 24 - sChase.balls;
-    if (chasing === "A") { el.targetA.innerHTML = `TARGET: ${target}<br>NEED ${remRuns} FROM ${remBalls}`; el.targetA.classList.remove("hidden"); }
-    if (chasing === "B") { el.targetB.innerHTML = `TARGET: ${target}<br>NEED ${remRuns} FROM ${remBalls}`; el.targetB.classList.remove("hidden"); }
+    if (chasing === "A") { el.targetA.innerHTML = `TARGET: ${target}<br>NEED ${remRuns} FROM ${remBalls}`; el.targetA.classList.remove("hidden"); el.targetB.classList.add("hidden"); }
+    if (chasing === "B") { el.targetB.innerHTML = `TARGET: ${target}<br>NEED ${remRuns} FROM ${remBalls}`; el.targetB.classList.remove("hidden"); el.targetA.classList.add("hidden"); }
+  } else {
+    el.targetA.classList.add("hidden");
+    el.targetB.classList.add("hidden");
   }
 
   // Active Players
